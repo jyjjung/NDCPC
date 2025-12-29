@@ -35,7 +35,7 @@ export function LoginForm() {
     const success = login(values.password);
 
     if (success) {
-      router.replace("/admin");
+      router.replace("/");
     } else {
       setError("Incorrect password. Please try again.");
     }
