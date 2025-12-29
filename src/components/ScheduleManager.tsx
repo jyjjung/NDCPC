@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScheduleForm } from './ScheduleForm';
-import { LoaderCircle, Plus, Trash2, Edit, Users, Calendar, User, Gift, MicVocal, ToyBrick, BookOpen } from 'lucide-react';
+import { LoaderCircle, Plus, Trash2, Edit, Users } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -66,11 +66,11 @@ export function ScheduleManager() {
   };
 
   const scheduleRoles = [
-    { key: 'worship', label: 'Worship', icon: Calendar },
-    { key: 'offering', label: 'Offering', icon: Gift },
-    { key: 'sermon', label: 'Sermon', icon: BookOpen },
-    { key: 'chant', label: 'Chant', icon: MicVocal },
-    { key: 'activity', label: 'Activity', icon: ToyBrick },
+    { key: 'worship', label: 'Worship' },
+    { key: 'offering', label: 'Offering' },
+    { key: 'sermon', label: 'Sermon' },
+    { key: 'chant', label: 'Chant' },
+    { key: 'activity', label: 'Activity' },
   ];
 
   return (
@@ -109,12 +109,12 @@ export function ScheduleManager() {
 
                 {isAdmin && (
                 <div className="flex items-center gap-1 shrink-0 ml-2">
-                    <Button variant="ghost" size="icon" onClick={() => handleEditSchedule(schedule)}>
+                    <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); handleEditSchedule(schedule); }}>
                         <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
                     <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={(e) => e.stopPropagation()}>
                         <Trash2 className="h-4 w-4" />
                         </Button>
                     </AlertDialogTrigger>
@@ -140,8 +140,7 @@ export function ScheduleManager() {
                 <div className="space-y-3 pt-2 pb-4">
                   {scheduleRoles.map(role => (
                      <div key={role.key} className="flex items-center text-sm">
-                        <role.icon className="h-4 w-4 mr-3 text-primary" />
-                        <span className="font-medium w-28">{role.label}:</span>
+                        <span className="font-medium w-28 shrink-0">{role.label}:</span>
                         <span className="text-muted-foreground">{(schedule as any)[role.key]}</span>
                     </div>
                   ))}

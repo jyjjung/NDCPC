@@ -20,6 +20,7 @@ import type { Schedule, Volunteer } from '@/lib/types';
 import { useEffect, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { addWeeks, format, nextSunday, subWeeks } from 'date-fns';
+import { ScrollArea } from './ui/scroll-area';
 
 const formSchema = z.object({
   date: z.string({
@@ -160,47 +161,51 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
 
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-      <FormField
-          control={form.control}
-          name="date"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date</FormLabel>
-                <Select 
-                    onValueChange={field.onChange} 
-                    value={field.value}
-                    defaultValue={defaultSunday.toISOString()}
-                >
-                    <FormControl>
-                    <SelectTrigger>
-                        <SelectValue placeholder="Select a Sunday" />
-                    </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                        {sundays.map(sunday => (
-                            <SelectItem key={sunday.toISOString()} value={sunday.toISOString()}>
-                                {format(sunday, "PPP")}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        {renderSelectField("worship", "Worship")}
-        {renderSelectField("offering", "Offering")}
-        {renderSelectField("sermon", "Sermon")}
-        {renderSelectField("chant", "Chant")}
-        {renderSelectField("activity", "Activity")}
+    <ScrollArea className="max-h-[70vh] p-1">
+        <div className="pr-6">
+            <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormLabel>Date</FormLabel>
+                        <Select 
+                            onValueChange={field.onChange} 
+                            value={field.value}
+                            defaultValue={defaultSunday.toISOString()}
+                        >
+                            <FormControl>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select a Sunday" />
+                            </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {sundays.map(sunday => (
+                                    <SelectItem key={sunday.toISOString()} value={sunday.toISOString()}>
+                                        {format(sunday, "PPP")}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    <FormMessage />
+                    </FormItem>
+                )}
+                />
+                
+                {renderSelectField("worship", "Worship")}
+                {renderSelectField("offering", "Offering")}
+                {renderSelectField("sermon", "Sermon")}
+                {renderSelectField("chant", "Chant")}
+                {renderSelectField("activity", "Activity")}
 
-        <Button type="submit" className="w-full">
-            {form.formState.isSubmitting ? 'Saving...' : 'Save Schedule'}
-        </Button>
-      </form>
-    </Form>
+                <Button type="submit" className="w-full">
+                    {form.formState.isSubmitting ? 'Saving...' : 'Save Schedule'}
+                </Button>
+            </form>
+            </Form>
+        </div>
+    </ScrollArea>
   );
 }
