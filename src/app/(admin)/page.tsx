@@ -26,34 +26,34 @@ export default function AnnouncementsPage() {
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                  <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10">
-                  <Megaphone className="h-6 w-6 text-primary" />
-                  </div>
-                  <CardTitle className="font-headline text-3xl">Announcements</CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10">
+                <Megaphone className="h-6 w-6 text-primary" />
               </div>
-              {isAdmin && (
-                 <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                 <DialogTrigger asChild>
-                     <Button>
-                     <Plus className="mr-2 h-4 w-4" /> Add Announcement
-                     </Button>
-                 </DialogTrigger>
-                 <DialogContent>
-                     <DialogHeader>
-                     <DialogTitle>Create a New Announcement</DialogTitle>
-                     <DialogDescription>
-                         Write a title and content for the announcement. It will be visible to everyone.
-                     </DialogDescription>
-                     </DialogHeader>
-                     <AddAnnouncementForm
-                      onSuccess={() => setIsAddOpen(false)}
-                     />
-                 </DialogContent>
-                 </Dialog>
-              )}
+              <CardTitle className="font-headline text-3xl">Announcements</CardTitle>
             </div>
+            {isAdmin && (
+              <div className="flex justify-end pt-4">
+                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" /> Add Announcement
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create a New Announcement</DialogTitle>
+                      <DialogDescription>
+                        Write a title and content for the announcement. It will be visible to everyone.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <AddAnnouncementForm
+                      onSuccess={() => setIsAddOpen(false)}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
+            )}
           </CardHeader>
           <CardContent>
             <AnnouncementList />
