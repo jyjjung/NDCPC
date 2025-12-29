@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Church, Menu, LogIn, LogOut } from "lucide-react";
+import { Church, Menu, LogIn, LogOut, Library, CalendarDays, Megaphone } from "lucide-react";
 import { useAdmin } from "@/context/AdminProvider";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -11,9 +11,9 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { useState } from "react";
 
 const navLinks = [
-  { href: "/", label: "Resources" },
-  { href: "/schedules", label: "Schedules" },
-  { href: "/announcements", label: "Announcements" },
+  { href: "/", label: "Resources", icon: Library },
+  { href: "/schedules", label: "Schedules", icon: CalendarDays },
+  { href: "/announcements", label: "Announcements", icon: Megaphone },
 ];
 
 export function Header() {
@@ -21,18 +21,20 @@ export function Header() {
   const { isAdmin, logout } = useAdmin();
   const [isSheetOpen, setSheetOpen] = useState(false);
 
-  const navItems = (
+  const navItems = (isMobile = false) => (
     <>
       {navLinks.map((link) => (
         <Link
           key={link.href}
           href={link.href}
           className={cn(
-            "transition-colors hover:text-primary",
-            pathname === link.href ? "text-primary font-semibold" : "text-muted-foreground"
+            "transition-colors hover:text-primary flex items-center gap-3",
+            pathname === link.href ? "text-primary font-semibold" : "text-muted-foreground",
+            isMobile ? "text-lg" : "text-sm"
           )}
           onClick={() => setSheetOpen(false)}
         >
+          {isMobile && <link.icon className="h-5 w-5" />}
           {link.label}
         </Link>
       ))}
@@ -56,8 +58,8 @@ export function Header() {
                   <Church className="h-6 w-6 text-primary" />
                   <span className="font-bold font-headline">NDC Preschool Church</span>
                 </Link>
-                <nav className="flex flex-col items-start gap-6 text-lg">
-                  {navItems}
+                <nav className="flex flex-col items-start gap-6">
+                  {navItems(true)}
                 </nav>
               </SheetContent>
             </Sheet>
@@ -67,8 +69,8 @@ export function Header() {
           <span className="hidden font-bold font-headline sm:inline-block">NDC Preschool Church</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm md:flex">
-          {navItems}
+        <nav className="hidden items-center gap-6 md:flex">
+          {navItems()}
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2">
