@@ -14,13 +14,11 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { AddResourceForm } from '@/components/AddResourceForm';
-import { useAdmin } from '@/context/AdminProvider';
 import { useFirestore } from '@/firebase';
 import { doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
 export default function Home() {
-  const { isAdmin } = useAdmin();
   const [activeTab, setActiveTab] = useState('songs');
   const [isManageMode, setIsManageMode] = useState(false);
   const [selectedResources, setSelectedResources] = useState<string[]>([]);
@@ -68,6 +66,9 @@ export default function Home() {
     setIsManageMode(!isManageMode);
   };
 
+  const addResourceText = activeTab === 'songs' ? 'Add Song' : 'Add Chant';
+  const dialogTitle = activeTab === 'songs' ? 'Add a New Song' : 'Add a New Chant';
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-headline mb-6">Resources</h1>
@@ -87,12 +88,12 @@ export default function Home() {
             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
             <DialogTrigger asChild>
                 <Button variant="outline">
-                <Plus className="mr-2 h-4 w-4" /> Add Resource
+                <Plus className="mr-2 h-4 w-4" /> {addResourceText}
                 </Button>
             </DialogTrigger>
             <DialogContent>
                 <DialogHeader>
-                <DialogTitle>Add a New Resource</DialogTitle>
+                <DialogTitle>{dialogTitle}</DialogTitle>
                 <DialogDescription>
                     Submit a YouTube URL for a new song or chant.
                 </DialogDescription>
