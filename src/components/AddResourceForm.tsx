@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,11 +22,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore } from "@/firebase";
 import { collection, serverTimestamp, addDoc } from "firebase/firestore";
-import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   url: z.string().url("Please enter a valid YouTube URL.").refine(
@@ -38,18 +36,27 @@ const formSchema = z.object({
   }),
 });
 
-export function AddResourceForm() {
+interface AddResourceFormProps {
+  initialCategory?: 'songs' | 'chants';
+  onSuccess?: () => void;
+}
+
+export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
   const firestore = useFirestore();
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       url: "",
+      category: initialCategory,
     }
   });
+
+  useEffect(() => {
+    form.reset({ url: '', category: initialCategory });
+  }, [initialCategory, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!firestore) {
@@ -89,10 +96,11 @@ export function AddResourceForm() {
         description: `"${newResource.title}" has been added to the "${values.category}" page.`
       });
       
-      form.reset({url: '', category: undefined});
+      form.reset({url: '', category: initialCategory});
       
-      router.push(`/${values.category}`);
-      router.refresh();
+      if (onSuccess) {
+        onSuccess();
+      }
 
     } catch (error: any) {
       console.error(error);
@@ -107,54 +115,46 @@ export function AddResourceForm() {
   }
 
   return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-headline">Add a Resource</CardTitle>
-          <CardDescription>Submit a YouTube URL for a new song or chant.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="url"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>YouTube URL</FormLabel>
-                    <FormControl>
-                      <Input placeholder="https://youtube.com/watch?v=..." {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-               <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="songs">Song</SelectItem>
-                        <SelectItem value="chants">Chant</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Adding..." : "Add Resource"}
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
+            name="url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>YouTube URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://youtube.com/watch?v=..." {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+           <FormField
+            control={form.control}
+            name="category"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Category</FormLabel>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="songs">Song</SelectItem>
+                    <SelectItem value="chants">Chant</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Adding..." : "Add Resource"}
+          </Button>
+        </form>
+      </Form>
   );
 }

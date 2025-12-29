@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Church, Menu, LogIn, LogOut, PlusCircle } from "lucide-react";
+import { Church, Menu, LogIn, LogOut } from "lucide-react";
 import { useAdmin } from "@/context/AdminProvider";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -85,14 +85,6 @@ export function Header() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2">
-           {isAdmin && (
-            <Button asChild variant="outline" size="sm">
-              <Link href="/add">
-                <PlusCircle />
-                <span className="hidden sm:inline-block">Add Resource</span>
-              </Link>
-            </Button>
-           )}
           {isAdmin ? (
             <Button variant="outline" size="sm" onClick={logout}>
               <LogOut />
