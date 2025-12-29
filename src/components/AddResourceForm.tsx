@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Resource, ResourceCategory } from "@/lib/types";
+import { ResourceCategory } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
 const resourceCategories: Exclude<ResourceCategory, 'schedules' | 'announcements'>[] = ['chants', 'songs'];
@@ -64,7 +64,8 @@ export function AddResourceForm() {
   return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl">Add a Song or Chant</CardTitle>
+          <CardTitle className="text-2xl font-headline">Add a Song or Chant</CardTitle>
+          <CardDescription>Submit a URL for a new resource. It will be reviewed by an administrator before being added.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
