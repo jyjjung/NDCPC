@@ -15,15 +15,15 @@ function getYouTubeVideoId(url: string) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
-export default function ResourcePage({ params }: { params: { id: string } }) {
+export default function ResourcePage({ params: { id } }: { params: { id: string } }) {
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
 
   const resourceRef = useMemoFirebase(() => {
     if (!firestore || !category) return null;
-    return doc(firestore, 'categories', category, 'resources', params.id)
-  }, [firestore, category, params.id]);
+    return doc(firestore, 'categories', category, 'resources', id)
+  }, [firestore, category, id]);
 
   const { data: resource, isLoading } = useDoc<Resource>(resourceRef);
 
