@@ -86,12 +86,14 @@ export function Header() {
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-2">
-           <Button asChild variant="outline" size="sm">
+           {isAdmin && (
+            <Button asChild variant="outline" size="sm">
               <Link href="/add">
                 <PlusCircle />
                 <span className="hidden sm:inline-block">Add Resource</span>
               </Link>
             </Button>
+           )}
           {isAdmin ? (
             <Button variant="outline" size="sm" onClick={logout}>
               <LogOut />

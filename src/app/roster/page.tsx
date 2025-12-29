@@ -1,4 +1,5 @@
-import { roster } from "@/lib/data";
+
+'use client';
 import { RosterTable } from "@/components/RosterTable";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
@@ -19,7 +20,7 @@ export default function RosterPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <RosterTable initialRoster={roster} />
+          <RosterTable />
         </CardContent>
       </Card>
     </div>

@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils';
 import { AdminProvider } from '@/context/AdminProvider';
 import { Header } from '@/components/Header';
 import { Toaster } from "@/components/ui/toaster";
+import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
   title: 'NDC Preschooler\'s Church',
@@ -23,13 +24,15 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
-        <AdminProvider>
-          <div className="relative flex min-h-screen flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-          </div>
-          <Toaster />
-        </AdminProvider>
+        <FirebaseClientProvider>
+          <AdminProvider>
+            <div className="relative flex min-h-screen flex-col">
+              <Header />
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+          </AdminProvider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );

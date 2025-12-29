@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
+import { useAuth } from "@/firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
 
 const formSchema = z.object({
   password: z.string().min(1, "Password is required"),
@@ -16,8 +19,9 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
-  const { login } = useAdmin();
+  const auth = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -26,15 +30,15 @@ export function LoginForm() {
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-    if (login(values.password)) {
+    setError(null);
+    try {
+      await signInWithEmailAndPassword(auth, "admin@example.com", values.password);
       router.replace("/admin");
-    } else {
-      form.setError("password", {
-        type: "manual",
-        message: "Incorrect password. Please try again.",
-      });
+    } catch (e: any) {
+      setError("Incorrect password. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   }
@@ -55,6 +59,7 @@ export function LoginForm() {
             </FormItem>
           )}
         />
+        {error && <p className="text-sm font-medium text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Logging in..." : "Login"}
         </Button>

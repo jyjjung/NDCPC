@@ -6,6 +6,7 @@ export type Resource = {
   title: string;
   url: string;
   category: ResourceCategory;
+  categoryId?: string;
 };
 
 export type RosterMember = {

@@ -24,8 +24,9 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { useFirestore, addDocumentNonBlocking } from "@/firebase";
+import { collection } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { addResource } from "@/lib/data";
 
 const formSchema = z.object({
   url: z.string().url("Please enter a valid YouTube URL.").refine(
@@ -40,6 +41,7 @@ const formSchema = z.object({
 export function AddResourceForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const firestore = useFirestore();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -53,11 +55,8 @@ export function AddResourceForm() {
     setIsSubmitting(true);
     
     try {
-      // Use noembed.com to fetch YouTube video title
       const oembedResponse = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(values.url)}`);
       if (!oembedResponse.ok) {
-        const errorText = await oembedResponse.text();
-        console.error("Oembed fetch failed:", errorText);
         throw new Error('Could not fetch video details from URL.');
       }
       const data = await oembedResponse.json();
@@ -65,25 +64,32 @@ export function AddResourceForm() {
       if (data.error) {
         throw new Error(data.error);
       }
+
+      const categoryId = values.category;
+      const resourcesCollectionRef = collection(firestore, 'categories', categoryId, 'resources');
       
+      const newResourceId = `res-${Date.now()}`;
+
       const newResource = {
-        id: `res-${Date.now()}`,
+        id: newResourceId,
         title: data.title || 'Untitled Video',
         url: values.url,
-        category: values.category,
+        categoryId: categoryId,
       };
 
-      addResource(newResource);
-
+      // We don't await this, it runs in the background
+      addDocumentNonBlocking(resourcesCollectionRef, newResource);
+      
       toast({
         title: "Success!",
-        description: `"${newResource.title}" has been added to the "${newResource.category}" page.`
+        description: `"${newResource.title}" has been added to the "${newResource.categoryId}" page.`
       });
       
       form.reset({url: '', category: undefined});
       
-      // Force a hard navigation to the category page to ensure fresh data
-      window.location.href = `/${newResource.category}`;
+      // Navigate to the category page to see the new resource
+      router.push(`/${newResource.categoryId}`);
+      router.refresh();
 
     } catch (error: any) {
       console.error(error);

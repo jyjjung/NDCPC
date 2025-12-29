@@ -4,11 +4,12 @@
 import * as React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Resource, ResourceCategory } from "@/lib/types";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, LoaderCircle } from "lucide-react";
 import Link from "next/link";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query } from "firebase/firestore";
 
 interface ResourceListProps {
-  resources: Resource[];
   category: ResourceCategory;
 }
 
@@ -20,8 +21,26 @@ const categoryLabels: Record<ResourceCategory, string> = {
   videos: "videos",
 };
 
-export function ResourceList({ resources, category }: ResourceListProps) {
-  if (resources.length === 0) {
+export function ResourceList({ category }: ResourceListProps) {
+  const firestore = useFirestore();
+
+  const resourcesQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'categories', category, 'resources'));
+  }, [firestore, category]);
+
+  const { data: resources, isLoading } = useCollection<Omit<Resource, 'category'>>(resourcesQuery);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+        <p className="ml-4">Loading resources...</p>
+      </div>
+    );
+  }
+
+  if (!resources || resources.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/20 bg-muted/40 p-12 text-center">
         <p className="text-muted-foreground">No {categoryLabels[category]} available at the moment.</p>
@@ -33,7 +52,7 @@ export function ResourceList({ resources, category }: ResourceListProps) {
     <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
       {resources.map((resource) => (
         <Card key={resource.id} className="transition-all hover:shadow-md hover:-translate-y-1">
-           <Link href={`/resources/${resource.id}`} className="block">
+           <Link href={`/resources/${resource.id}?category=${category}`} className="block">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <p className="font-semibold">{resource.title}</p>

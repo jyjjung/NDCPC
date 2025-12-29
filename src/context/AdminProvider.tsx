@@ -3,7 +3,9 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, ReactNode } from "react";
+import { useUser, useAuth, initiateEmailSignIn } from "@/firebase";
+import { signOut } from "firebase/auth";
 
 interface AdminContextType {
   isAdmin: boolean;
@@ -13,42 +15,43 @@ interface AdminContextType {
 
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
-// In a real app, this would be a more secure secret, likely an environment variable.
-const ADMIN_PASSWORD = "Admin123";
-
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const { user, isUserLoading } = useUser();
+  const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
 
+  const isAdmin = !!user;
+
   const login = (password: string) => {
-    if (password === ADMIN_PASSWORD) {
-      setIsAdmin(true);
-      toast({
-        title: "Success",
-        description: "Logged in as administrator.",
-      });
-      return true;
-    }
-    toast({
-      variant: "destructive",
-      title: "Error",
-      description: "Incorrect password.",
-    });
-    return false;
+    // In a real app, you'd use the admin SDK to verify a user is an admin.
+    // For now, any signed-in user is considered an admin.
+    // The password from the form is used with a hardcoded email.
+    initiateEmailSignIn(auth, "admin@example.com", password);
+    // Note: We can't immediately know if login was successful here
+    // due to the non-blocking nature. We rely on the `useUser` hook to update.
+    // A more robust solution might involve checking for errors.
+    return true; // Optimistically return true.
   };
 
   const logout = () => {
-    setIsAdmin(false);
-    toast({
-      title: "Logged Out",
-      description: "You have successfully logged out.",
+    signOut(auth).then(() => {
+      toast({
+        title: "Logged Out",
+        description: "You have successfully logged out.",
+      });
+      router.push("/");
     });
-    router.push("/");
+  };
+
+  const contextValue = {
+    isAdmin: !isUserLoading && isAdmin,
+    login,
+    logout,
   };
 
   return (
-    <AdminContext.Provider value={{ isAdmin, login, logout }}>
+    <AdminContext.Provider value={contextValue}>
       {children}
     </AdminContext.Provider>
   );

@@ -1,3 +1,4 @@
+
 "use client";
 
 import {
@@ -9,18 +10,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { RosterMember } from "@/lib/types";
-import { useState } from "react";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query } from "firebase/firestore";
+import { LoaderCircle } from "lucide-react";
 
-interface RosterTableProps {
-  initialRoster: RosterMember[];
-}
+export function RosterTable() {
+  const firestore = useFirestore();
 
-export function RosterTable({ initialRoster }: RosterTableProps) {
-  const [roster, setRoster] = useState<RosterMember[]>(initialRoster);
+  const rosterQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'roster_entries'));
+  }, [firestore]);
+
+  const { data: roster, isLoading } = useCollection<RosterMember>(rosterQuery);
   
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!roster || roster.length === 0) {
+    return <p className="text-muted-foreground">No roster information available.</p>
+  }
+
   // Group roster by week
   const rosterByWeek = roster.reduce((acc, member) => {
-    (acc[member.week] = acc[member.week] || []).push(member);
+    const week = member.week || 'Uncategorized';
+    (acc[week] = acc[week] || []).push(member);
     return acc;
   }, {} as Record<string, RosterMember[]>);
 

@@ -1,12 +1,10 @@
 
-import { getResources } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+'use client';
 import { ResourceList } from '@/components/ResourceList';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays } from 'lucide-react';
 
 export default function SchedulesPage() {
-  const scheduleResources = getResources('schedules');
-
   return (
     <div className="container mx-auto px-4 py-8">
       <Card>
@@ -19,7 +17,7 @@ export default function SchedulesPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <ResourceList resources={scheduleResources} category="schedules" />
+          <ResourceList category="schedules" />
         </CardContent>
       </Card>
     </div>

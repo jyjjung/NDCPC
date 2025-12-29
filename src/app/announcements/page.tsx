@@ -1,12 +1,10 @@
 
-import { getResources } from '@/lib/data';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+'use client';
 import { ResourceList } from '@/components/ResourceList';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Megaphone } from 'lucide-react';
 
 export default function AnnouncementsPage() {
-  const announcementResources = getResources('announcements');
-
   return (
     <div className="container mx-auto px-4 py-8">
       <Card>
@@ -19,7 +17,7 @@ export default function AnnouncementsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <ResourceList resources={announcementResources} category="announcements" />
+          <ResourceList category="announcements" />
         </CardContent>
       </Card>
     </div>

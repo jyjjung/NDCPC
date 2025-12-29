@@ -1,10 +1,13 @@
+'use client'
 
-import { getResources } from "@/lib/data";
-import { notFound } from "next/navigation";
+import { useDoc, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc } from "firebase/firestore";
+import { notFound, useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import type { Resource } from "@/lib/types";
 
 function getYouTubeVideoId(url: string) {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
@@ -13,7 +16,24 @@ function getYouTubeVideoId(url: string) {
 }
 
 export default function ResourcePage({ params }: { params: { id: string } }) {
-  const resource = getResources().find((res) => res.id === params.id);
+  const firestore = useFirestore();
+  const searchParams = useSearchParams();
+  const category = searchParams.get('category');
+
+  const resourceRef = useMemoFirebase(() => {
+    if (!firestore || !category) return null;
+    return doc(firestore, 'categories', category, 'resources', params.id)
+  }, [firestore, category, params.id]);
+
+  const { data: resource, isLoading } = useDoc<Resource>(resourceRef);
+
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-8 flex justify-center">
+        <LoaderCircle className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   if (!resource) {
     notFound();
@@ -25,7 +45,7 @@ export default function ResourcePage({ params }: { params: { id: string } }) {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-4">
         <Button asChild variant="outline">
-          <Link href={`/${resource.category}`} className="gap-2">
+          <Link href={`/${category}`} className="gap-2">
             <ArrowLeft />
             Back to Resources
           </Link>
