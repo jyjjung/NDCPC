@@ -15,7 +15,8 @@ function getYouTubeVideoId(url: string) {
   return (match && match[2].length === 11) ? match[2] : null;
 }
 
-export default function ResourcePage({ params: { id } }: { params: { id: string } }) {
+export default function ResourcePage({ params }: { params: { id: string } }) {
+  const id = params.id;
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
