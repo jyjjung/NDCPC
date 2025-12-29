@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Church, Menu, LogIn, LogOut, PlusCircle, Video } from "lucide-react";
+import { Church, Menu, LogIn, LogOut, PlusCircle } from "lucide-react";
 import { useAdmin } from "@/context/AdminProvider";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
