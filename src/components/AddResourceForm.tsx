@@ -8,6 +8,13 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
   FormField,
@@ -19,13 +26,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { addResource } from "@/lib/data";
-import { categorizeUrl } from "@/ai/flows/categorize-new-urls";
 
 const formSchema = z.object({
   url: z.string().url("Please enter a valid YouTube URL.").refine(
     (url) => url.includes("youtube.com/watch") || url.includes("youtu.be"),
     "Please provide a valid YouTube URL."
   ),
+  category: z.enum(['songs', 'chants'], {
+    required_error: "You need to select a resource type.",
+  }),
 });
 
 export function AddResourceForm() {
@@ -54,15 +63,12 @@ export function AddResourceForm() {
       if (data.error) {
         throw new Error(data.error);
       }
-
-      // Use Genkit to categorize the URL
-      const { category } = await categorizeUrl({ url: values.url });
       
       const newResource = {
         id: `res-${Date.now()}`,
         title: data.title || 'Untitled Video',
         url: values.url,
-        category: category as 'songs' | 'chants',
+        category: values.category,
       };
 
       addResource(newResource);
@@ -72,7 +78,7 @@ export function AddResourceForm() {
         description: `"${newResource.title}" has been added to the "${newResource.category}" page.`
       });
       
-      form.reset({url: ''});
+      form.reset({url: '', category: undefined});
       
       // Navigate to the category page which will be fresh
       router.push(`/${newResource.category}`);
@@ -94,7 +100,7 @@ export function AddResourceForm() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Add a Resource</CardTitle>
-          <CardDescription>Submit a YouTube URL for a new song or chant. It will be categorized and added to the library automatically.</CardDescription>
+          <CardDescription>Submit a YouTube URL for a new song or chant.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -108,6 +114,27 @@ export function AddResourceForm() {
                     <FormControl>
                       <Input placeholder="https://youtube.com/watch?v=..." {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+               <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Category</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="songs">Song</SelectItem>
+                        <SelectItem value="chants">Chant</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
