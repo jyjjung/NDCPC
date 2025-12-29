@@ -7,7 +7,7 @@ import { Resource, ResourceCategory } from "@/lib/types";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query, where, orderBy } from "firebase/firestore";
+import { collection, query, orderBy } from "firebase/firestore";
 
 interface ResourceListProps {
   category: ResourceCategory;
@@ -26,15 +26,20 @@ export function ResourceList({ category }: ResourceListProps) {
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    // Query the single 'resources' collection and filter by category
+    // Query all resources, order by creation date. Filtering will be done on the client.
     return query(
-      collection(firestore, 'resources'), 
-      where('category', '==', category),
+      collection(firestore, 'resources'),
       orderBy('createdAt', 'desc')
     );
-  }, [firestore, category]);
+  }, [firestore]);
 
-  const { data: resources, isLoading } = useCollection<Omit<Resource, 'category'>>(resourcesQuery);
+  const { data: allResources, isLoading } = useCollection<Resource>(resourcesQuery);
+
+  const resources = React.useMemo(() => {
+    if (!allResources) return [];
+    return allResources.filter(resource => resource.category === category);
+  }, [allResources, category]);
+
 
   if (isLoading) {
     return (
