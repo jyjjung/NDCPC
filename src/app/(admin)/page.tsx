@@ -11,7 +11,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Megaphone, Plus, Library, CalendarDays } from 'lucide-react';
 import { useAdmin } from '@/context/AdminProvider';
 import { AnnouncementList } from '@/components/AnnouncementList';
@@ -31,7 +31,7 @@ export default function AnnouncementsPage() {
               </div>
               <CardTitle className="font-headline text-3xl">Announcements</CardTitle>
             </div>
-            <div className="flex flex-wrap justify-end gap-2 pt-4">
+            <div className="flex justify-end pt-4">
               {isAdmin && (
                 <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                   <DialogTrigger asChild>
@@ -52,21 +52,23 @@ export default function AnnouncementsPage() {
                   </DialogContent>
                 </Dialog>
               )}
-                <Button asChild variant="outline">
-                    <Link href="/resources">
-                        <Library className="mr-2 h-4 w-4" /> Resources
-                    </Link>
-                </Button>
-                <Button asChild variant="outline">
-                    <Link href="/schedules">
-                        <CalendarDays className="mr-2 h-4 w-4" /> Schedules
-                    </Link>
-                </Button>
             </div>
           </CardHeader>
           <CardContent>
             <AnnouncementList />
           </CardContent>
+          <CardFooter className="flex flex-wrap justify-end gap-2 pt-6">
+             <Button asChild variant="outline">
+                <Link href="/resources">
+                    <Library className="mr-2 h-4 w-4" /> Resources
+                </Link>
+            </Button>
+            <Button asChild variant="outline">
+                <Link href="/schedules">
+                    <CalendarDays className="mr-2 h-4 w-4" /> Schedules
+                </Link>
+            </Button>
+          </CardFooter>
         </Card>
       </div>
   );
