@@ -4,27 +4,26 @@ import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Resource, ResourceCategory } from "@/lib/types";
-import { Mic, Music, CalendarDays, Megaphone, Video, ArrowRight } from "lucide-react";
+import { Mic, Music, CalendarDays, Megaphone, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface ResourceTabsProps {
   resources: Resource[];
 }
 
-const categoryConfig: Record<ResourceCategory, { icon: React.ElementType, label: string }> = {
+const categoryConfig: Record<Exclude<ResourceCategory, 'videos'>, { icon: React.ElementType, label: string }> = {
   chants: { icon: Mic, label: "Chants" },
   songs: { icon: Music, label: "Songs" },
   schedules: { icon: CalendarDays, label: "Schedules" },
   announcements: { icon: Megaphone, label: "Announcements" },
-  videos: { icon: Video, label: "Videos" },
 };
 
 export function ResourceTabs({ resources }: ResourceTabsProps) {
-  const categories = Object.keys(categoryConfig) as ResourceCategory[];
+  const categories = Object.keys(categoryConfig) as Exclude<ResourceCategory, 'videos'>[];
 
   return (
     <Tabs defaultValue="songs" className="w-full">
-      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5">
+      <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
         {categories.map((category) => (
           <TabsTrigger key={category} value={category} className="gap-2">
             {React.createElement(categoryConfig[category].icon, { className: "h-4 w-4" })}

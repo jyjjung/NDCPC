@@ -8,8 +8,6 @@ export const resources: Resource[] = [
   { id: 'schedule-1', title: 'July 2024 Sunday Schedule', url: '/july_2024_schedule.pdf', category: 'schedules' },
   { id: 'announce-1', title: 'Summer Picnic Day', url: 'https://example.com/picnic-announcement', category: 'announcements' },
   { id: 'announce-2', title: 'Volunteer Sign-up', url: 'https://example.com/volunteer-signup', category: 'announcements' },
-  { id: 'video-1', title: 'The Story of Noah\'s Ark', url: 'https://www.youtube.com/watch?v=t1g2-n4d_vA', category: 'videos' },
-  { id: 'video-2', title: 'David and Goliath Animation', url: 'https://www.youtube.com/watch?v=__k_wV9o1fE', category: 'videos' },
 ];
 
 export const roster: RosterMember[] = [
