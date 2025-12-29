@@ -54,9 +54,11 @@ export function AddResourceForm() {
     
     try {
       // Use noembed.com to fetch YouTube video title
-      const oembedResponse = await fetch(`https://noembed.com/embed?url=${values.url}`);
+      const oembedResponse = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(values.url)}`);
       if (!oembedResponse.ok) {
-        throw new Error('Could not fetch video details.');
+        const errorText = await oembedResponse.text();
+        console.error("Oembed fetch failed:", errorText);
+        throw new Error('Could not fetch video details from URL.');
       }
       const data = await oembedResponse.json();
       
@@ -80,12 +82,11 @@ export function AddResourceForm() {
       
       form.reset({url: '', category: undefined});
       
-      // Navigate to the category page which will be fresh
-      router.push(`/${newResource.category}`);
-      // Refresh the router to ensure everything is up to date
-      router.refresh();
+      // Force a hard navigation to the category page to ensure fresh data
+      window.location.href = `/${newResource.category}`;
 
     } catch (error: any) {
+      console.error(error);
       toast({
         variant: "destructive",
         title: "Uh oh! Something went wrong.",
