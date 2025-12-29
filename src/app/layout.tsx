@@ -8,8 +8,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 
 export const metadata: Metadata = {
-  title: 'NDC Preschooler\'s Church',
-  description: 'Resources and schedules for NDC Preschooler\'s Church volunteers and caregivers.',
+  title: 'NDC Preschool Church',
+  description: 'Resources and schedules for NDC Preschool Church volunteers and caregivers.',
 };
 
 export default function RootLayout({

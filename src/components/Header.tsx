@@ -54,7 +54,7 @@ export function Header() {
                 <SheetTitle className="sr-only">Menu</SheetTitle>
                 <Link href="/" className="mr-6 flex items-center gap-2 mb-8" onClick={() => setSheetOpen(false)}>
                   <Church className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline">NDC Preschool</span>
+                  <span className="font-bold font-headline">NDC Preschool Church</span>
                 </Link>
                 <nav className="flex flex-col items-start gap-6 text-lg">
                   {navItems}
@@ -64,7 +64,7 @@ export function Header() {
           </div>
         <Link href="/" className="mr-6 flex items-center gap-2">
           <Church className="h-6 w-6 text-primary" />
-          <span className="hidden font-bold font-headline sm:inline-block">NDC Preschool</span>
+          <span className="hidden font-bold font-headline sm:inline-block">NDC Preschool Church</span>
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm md:flex">
