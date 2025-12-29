@@ -2,13 +2,11 @@
 'use client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Megaphone } from 'lucide-react';
-import { AdminGate } from '@/components/AdminGate';
 import { AnnouncementList } from '@/components/AnnouncementList';
 
 
 export default function AnnouncementsPage() {
   return (
-    <AdminGate>
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
@@ -24,6 +22,5 @@ export default function AnnouncementsPage() {
           </CardContent>
         </Card>
       </div>
-    </AdminGate>
   );
 }
