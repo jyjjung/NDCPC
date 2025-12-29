@@ -104,7 +104,7 @@ service cloud.firestore {
      * @principle Role-based access control (Admin writes, Authenticated reads).
      */
     match /categories/{categoryId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
       allow create: if isAdmin() && hasValidIdOnCreate(categoryId);
       allow update: if isAdmin() && documentExists() && isIdImmutable();
       allow delete: if isAdmin() && documentExists();
@@ -118,7 +118,7 @@ service cloud.firestore {
        * @principle Enforces relational integrity and role-based access.
        */
       match /resources/{resourceId} {
-        allow get, list: if isSignedIn();
+        allow get, list: if true;
         allow create: if isAdmin() && hasValidIdOnCreate(resourceId) && hasValidCategoryOnCreate(categoryId);
         allow update: if isAdmin() && documentExists() && isIdImmutable() && isCategoryImmutable();
         allow delete: if isAdmin() && documentExists();
@@ -134,7 +134,7 @@ service cloud.firestore {
      * @principle Role-based access control (Admin writes, Authenticated reads).
      */
     match /roster_entries/{rosterEntryId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
       allow create: if isAdmin() && hasValidIdOnCreate(rosterEntryId);
       allow update: if isAdmin() && documentExists() && isIdImmutable();
       allow delete: if isAdmin() && documentExists();
@@ -149,7 +149,7 @@ service cloud.firestore {
      * @principle Role-based access control (Admin writes, Authenticated reads).
      */
     match /announcements/{announcementId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
       allow create: if isAdmin() && hasValidIdOnCreate(announcementId);
       allow update: if isAdmin() && documentExists() && isIdImmutable();
       allow delete: if isAdmin() && documentExists();
@@ -164,7 +164,7 @@ service cloud.firestore {
      * @principle Role-based access control (Admin writes, Authenticated reads).
      */
     match /videos/{videoId} {
-      allow get, list: if isSignedIn();
+      allow get, list: if true;
       allow create: if isAdmin() && hasValidIdOnCreate(videoId);
       allow update: if isAdmin() && documentExists() && isIdImmutable();
       allow delete: if isAdmin() && documentExists();
