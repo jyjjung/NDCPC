@@ -52,6 +52,27 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
+        <div className="md:hidden">
+          <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="mr-4">
+                <Menu className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left">
+               <SheetTitle className="sr-only">Menu</SheetTitle>
+              <Link href="/" className="mr-6 flex items-center gap-2 mb-8" onClick={() => setSheetOpen(false)}>
+                <Church className="h-6 w-6 text-primary" />
+                <span className="font-bold font-headline">NDC Preschool</span>
+              </Link>
+              <nav className="flex flex-col items-start gap-6 text-lg">
+                {navItems}
+              </nav>
+            </SheetContent>
+          </Sheet>
+        </div>
+
         <Link href="/" className="mr-6 flex items-center gap-2">
           <Church className="h-6 w-6 text-primary" />
           <span className="font-bold font-headline">NDC Preschool</span>
@@ -75,25 +96,6 @@ export function Header() {
               </Link>
             </Button>
           )}
-
-          <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="icon" className="md:hidden">
-                <Menu className="h-4 w-4" />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left">
-               <SheetTitle className="sr-only">Menu</SheetTitle>
-              <Link href="/" className="mr-6 flex items-center gap-2 mb-8" onClick={() => setSheetOpen(false)}>
-                <Church className="h-6 w-6 text-primary" />
-                <span className="font-bold font-headline">NDC Preschool</span>
-              </Link>
-              <nav className="flex flex-col items-start gap-6 text-lg">
-                {navItems}
-              </nav>
-            </SheetContent>
-          </Sheet>
         </div>
       </div>
     </header>
