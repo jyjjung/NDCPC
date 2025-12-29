@@ -20,7 +20,9 @@ export function SidebarNav({ onLinkClick }: SidebarNavProps) {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === '/') return pathname === '/';
+    if (href === '/') {
+        return pathname === '/' || pathname === '/announcements';
+    }
     return pathname.startsWith(href);
   };
 
