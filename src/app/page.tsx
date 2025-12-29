@@ -83,44 +83,42 @@ export default function Home() {
           </TabsTrigger>
         </TabsList>
 
-        {isAdmin && (
-          <div className="flex justify-end gap-2 mt-4">
-             <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-              <DialogTrigger asChild>
+        <div className="flex justify-end gap-2 mt-4">
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
                 <Button variant="outline">
-                  <Plus className="mr-2 h-4 w-4" /> Add Resource
+                <Plus className="mr-2 h-4 w-4" /> Add Resource
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
+            </DialogTrigger>
+            <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Add a New Resource</DialogTitle>
-                  <DialogDescription>
+                <DialogTitle>Add a New Resource</DialogTitle>
+                <DialogDescription>
                     Submit a YouTube URL for a new song or chant.
-                  </DialogDescription>
+                </DialogDescription>
                 </DialogHeader>
                 <AddResourceForm
-                  initialCategory={activeTab as 'songs' | 'chants'}
-                  onSuccess={() => setIsAddOpen(false)}
+                initialCategory={activeTab as 'songs' | 'chants'}
+                onSuccess={() => setIsAddOpen(false)}
                 />
-              </DialogContent>
+            </DialogContent>
             </Dialog>
 
             <Button variant="outline" onClick={toggleManageMode}>
-              {isManageMode ? <X className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
-              {isManageMode ? 'Cancel' : 'Manage'}
+            {isManageMode ? <X className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
+            {isManageMode ? 'Cancel' : 'Manage'}
             </Button>
 
             {isManageMode && selectedResources.length > 0 && (
-              <Button
+            <Button
                 variant="destructive"
                 onClick={handleDeleteSelected}
-              >
+            >
                 <Trash2 className="mr-2 h-4 w-4" />
                 Delete ({selectedResources.length})
-              </Button>
+            </Button>
             )}
-          </div>
-        )}
+        </div>
 
         <TabsContent value="songs">
           <ResourceList
