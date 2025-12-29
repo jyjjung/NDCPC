@@ -15,14 +15,12 @@ import { Megaphone, Plus } from 'lucide-react';
 import { useAdmin } from '@/context/AdminProvider';
 import { AnnouncementList } from '@/components/AnnouncementList';
 import { AddAnnouncementForm } from '@/components/AddAnnouncementForm';
-import { AdminGate } from '@/components/AdminGate';
 
 export default function AnnouncementsPage() {
   const { isAdmin } = useAdmin();
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   return (
-    <AdminGate>
       <div className="container mx-auto px-4 py-8">
         <Card>
           <CardHeader>
@@ -60,6 +58,5 @@ export default function AnnouncementsPage() {
           </CardContent>
         </Card>
       </div>
-    </AdminGate>
   );
 }

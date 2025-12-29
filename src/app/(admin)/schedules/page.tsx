@@ -3,11 +3,9 @@
 import { ScheduleManager } from "@/components/ScheduleManager";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays } from "lucide-react";
-import { AdminGate } from "@/components/AdminGate";
 
 export default function SchedulesPage() {
   return (
-    <AdminGate>
     <div className="container mx-auto px-4 py-8">
       <Card>
         <CardHeader>
@@ -26,6 +24,5 @@ export default function SchedulesPage() {
         </CardContent>
       </Card>
     </div>
-    </AdminGate>
   );
 }

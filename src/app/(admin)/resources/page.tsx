@@ -18,7 +18,6 @@ import { useFirestore } from '@/firebase';
 import { doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { useAdmin } from '@/context/AdminProvider';
-import { AdminGate } from '@/components/AdminGate';
 
 export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState('songs');
@@ -73,7 +72,6 @@ export default function ResourcesPage() {
   const dialogTitle = activeTab === 'songs' ? 'Add a New Song' : 'Add a New Chant';
 
   return (
-    <AdminGate>
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-headline mb-6">Resources</h1>
       <Tabs defaultValue="songs" className="w-full" onValueChange={setActiveTab}>
@@ -145,6 +143,5 @@ export default function ResourcesPage() {
         </TabsContent>
       </Tabs>
     </div>
-    </AdminGate>
   );
 }
