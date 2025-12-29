@@ -12,18 +12,15 @@ import { cn } from "@/lib/utils";
 
 
 interface ResourceListProps {
-  category: ResourceCategory;
+  category: 'songs' | 'chants';
   isManageMode: boolean;
   selectedResources: string[];
   onSelectionChange: (resourceId: string, isSelected: boolean) => void;
 }
 
-const categoryLabels: Record<ResourceCategory, string> = {
+const categoryLabels = {
   chants: "chants",
   songs: "songs",
-  schedules: "schedules",
-  announcements: "announcements",
-  videos: "videos",
 };
 
 function getYouTubeVideoId(url: string) {

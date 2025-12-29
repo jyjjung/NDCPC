@@ -3,14 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Library, CalendarDays, Megaphone, Video } from 'lucide-react';
+import { Library, CalendarDays, Megaphone } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Announcements', icon: Megaphone },
   { href: '/resources', label: 'Resources', icon: Library },
   { href: '/schedules', label: 'Schedules', icon: CalendarDays },
-  { href: '/videos', label: 'Videos', icon: Video },
 ];
 
 interface SidebarNavProps {

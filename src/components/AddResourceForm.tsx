@@ -27,7 +27,7 @@ const formSchema = z.object({
 });
 
 interface AddResourceFormProps {
-  initialCategory: 'songs' | 'chants' | 'videos';
+  initialCategory: 'songs' | 'chants';
   onSuccess?: () => void;
 }
 
