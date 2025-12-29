@@ -2,12 +2,11 @@
 "use client";
 
 import * as React from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Resource, ResourceCategory } from "@/lib/types";
-import { ArrowRight, LoaderCircle } from "lucide-react";
-import Link from "next/link";
+import { LoaderCircle } from "lucide-react";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { collection, query, orderBy } from "firebase/firestore";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface ResourceListProps {
   category: ResourceCategory;
@@ -20,6 +19,13 @@ const categoryLabels: Record<ResourceCategory, string> = {
   announcements: "announcements",
   videos: "videos",
 };
+
+function getYouTubeVideoId(url: string) {
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
+
 
 export function ResourceList({ category }: ResourceListProps) {
   const firestore = useFirestore();
@@ -59,19 +65,37 @@ export function ResourceList({ category }: ResourceListProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
-      {resources.map((resource) => (
-        <Card key={resource.id} className="transition-all hover:shadow-md hover:-translate-y-1">
-           <Link href={`/resources/${resource.id}?category=${category}`} className="block">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <p className="font-semibold">{resource.title}</p>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+    <Accordion type="single" collapsible className="w-full space-y-2 pt-4">
+      {resources.map((resource) => {
+        const youtubeVideoId = getYouTubeVideoId(resource.url);
+        return (
+          <AccordionItem value={resource.id} key={resource.id} className="rounded-lg border px-4 transition-all hover:shadow-md hover:-translate-y-1">
+            <AccordionTrigger className="py-4 font-semibold no-underline hover:no-underline">{resource.title}</AccordionTrigger>
+            <AccordionContent>
+                <div className="aspect-video w-full rounded-lg border overflow-hidden">
+                {youtubeVideoId ? (
+                  <iframe
+                    width="100%"
+                    height="100%"
+                    src={`https://www.youtube.com/embed/${youtubeVideoId}`}
+                    title="YouTube video player"
+                    frameBorder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  ></iframe>
+                ) : (
+                  <iframe
+                    src={resource.url}
+                    className="h-full w-full"
+                    title={resource.title}
+                  />
+                )}
               </div>
-            </CardContent>
-          </Link>
-        </Card>
-      ))}
-    </div>
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
   );
 }
+
