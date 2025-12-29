@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -13,32 +14,23 @@ export function Header() {
   const [isSheetOpen, setSheetOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center">
-        <div className="sm:hidden">
-            <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="mr-4">
-                  <Menu className="h-5 w-5" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-64 p-4">
-                 <Link href="/" className="mb-6 flex items-center gap-2" onClick={() => setSheetOpen(false)}>
-                  <Church className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline">NDC Preschool</span>
-                </Link>
-                <SidebarNav onLinkClick={() => setSheetOpen(false)} />
-              </SheetContent>
-            </Sheet>
-          </div>
+    <header className="sticky top-0 z-40 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+        <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+          <SheetTrigger asChild>
+            <Button size="icon" variant="outline" className="sm:hidden">
+              <Menu className="h-5 w-5" />
+              <span className="sr-only">Toggle Menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="sm:max-w-xs">
+             <Link href="/" className="mb-6 flex items-center gap-2" onClick={() => setSheetOpen(false)}>
+              <Church className="h-6 w-6 text-primary" />
+              <span className="font-bold font-headline">NDC Preschool</span>
+            </Link>
+            <SidebarNav onLinkClick={() => setSheetOpen(false)} />
+          </SheetContent>
+        </Sheet>
           
-        <Link href="/" className="mr-6 flex items-center gap-2 sm:hidden">
-          <Church className="h-6 w-6 text-primary" />
-          <span className="font-bold font-headline sm:inline-block">NDC Preschool Church</span>
-        </Link>
-
-
         <div className="flex flex-1 items-center justify-end gap-2">
           {isAdmin ? (
             <Button variant="outline" size="sm" onClick={logout}>
@@ -54,7 +46,6 @@ export function Header() {
             </Button>
           )}
         </div>
-      </div>
     </header>
   );
 }
