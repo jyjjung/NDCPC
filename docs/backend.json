@@ -112,6 +112,23 @@
         "content",
         "date"
       ]
+    },
+    "Volunteer": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Volunteer",
+      "type": "object",
+      "description": "Represents a volunteer who can be assigned to schedule roles.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Volunteer."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the volunteer."
+        }
+      },
+      "required": ["name"]
     }
   },
   "auth": {
@@ -169,8 +186,24 @@
             }
           ]
         }
+      },
+      {
+        "path": "/volunteers/{volunteerId}",
+        "definition": {
+          "entityName": "Volunteer",
+          "schema": {
+            "$ref": "#/backend/entities/Volunteer"
+          },
+          "description": "Stores a list of volunteers available for scheduling. Includes 'volunteerId' as document ID.",
+          "params": [
+            {
+              "name": "volunteerId",
+              "description": "The unique identifier of the volunteer."
+            }
+          ]
+        }
       }
     ],
-    "reasoning": "The Firestore data structure has been updated. The 'roster_entries' collection has been replaced with a 'schedules' collection to better reflect its purpose. This new collection uses a 'Schedule' entity that contains all the roles for a given week in a single document."
+    "reasoning": "The Firestore data structure has been updated. The 'roster_entries' collection has been replaced with a 'schedules' collection to better reflect its purpose. A new 'volunteers' collection has been added to manage the list of people who can be assigned to schedules. This new collection uses a 'Schedule' entity that contains all the roles for a given week in a single document."
   }
 }

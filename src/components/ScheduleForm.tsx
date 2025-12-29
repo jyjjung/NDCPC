@@ -5,11 +5,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,10 +23,11 @@ import { CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
-import { collection, addDoc, doc, setDoc, Timestamp } from 'firebase/firestore';
-import type { Schedule } from '@/lib/types';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, addDoc, doc, setDoc, Timestamp, query, orderBy } from 'firebase/firestore';
+import type { Schedule, Volunteer } from '@/lib/types';
 import { useEffect } from 'react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const formSchema = z.object({
   date: z.date({
@@ -50,6 +49,13 @@ interface ScheduleFormProps {
 export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
+
+  const volunteersQuery = useMemoFirebase(() => {
+    if (!firestore) return null;
+    return query(collection(firestore, 'volunteers'), orderBy('name'));
+  }, [firestore]);
+
+  const { data: volunteers } = useCollection<Volunteer>(volunteersQuery);
 
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(formSchema),
@@ -110,6 +116,32 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
     }
   };
 
+  const renderSelectField = (name: keyof ScheduleFormValues, label: string) => (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel>{label}</FormLabel>
+          <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a person" />
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {volunteers?.map(v => (
+                <SelectItem key={v.id} value={v.name}>{v.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -152,58 +184,12 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="worship"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Worship</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter name..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="offering"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Offering</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter name..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="sermonChant"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Sermon Chant</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter name..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="activity"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Activity</FormLabel>
-              <FormControl>
-                <Input placeholder="Enter name..." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
+        {renderSelectField("worship", "Worship")}
+        {renderSelectField("offering", "Offering")}
+        {renderSelectField("sermonChant", "Sermon Chant")}
+        {renderSelectField("activity", "Activity")}
+
         <Button type="submit" className="w-full">
             {form.formState.isSubmitting ? 'Saving...' : 'Save Schedule'}
         </Button>

@@ -21,10 +21,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { ScheduleForm } from './ScheduleForm';
-import { LoaderCircle, Plus, Trash2, Edit } from 'lucide-react';
+import { LoaderCircle, Plus, Trash2, Edit, Users } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -36,11 +35,13 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
+import { VolunteerManager } from './VolunteerManager';
 
 export function ScheduleManager() {
   const { isAdmin } = useAdmin();
   const firestore = useFirestore();
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isScheduleFormOpen, setIsScheduleFormOpen] = useState(false);
+  const [isVolunteerManagerOpen, setIsVolunteerManagerOpen] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null);
 
   const schedulesQuery = useMemoFirebase(() => {
@@ -50,32 +51,35 @@ export function ScheduleManager() {
 
   const { data: schedules, isLoading } = useCollection<Schedule>(schedulesQuery);
 
-  const handleAdd = () => {
+  const handleAddSchedule = () => {
     setEditingSchedule(null);
-    setIsFormOpen(true);
+    setIsScheduleFormOpen(true);
   };
 
-  const handleEdit = (schedule: Schedule) => {
+  const handleEditSchedule = (schedule: Schedule) => {
     setEditingSchedule(schedule);
-    setIsFormOpen(true);
+    setIsScheduleFormOpen(true);
   };
   
-  const handleDelete = async (scheduleId: string) => {
+  const handleDeleteSchedule = async (scheduleId: string) => {
     if (!firestore) return;
     await deleteDoc(doc(firestore, "schedules", scheduleId));
   };
 
 
   const handleFormSuccess = () => {
-    setIsFormOpen(false);
+    setIsScheduleFormOpen(false);
     setEditingSchedule(null);
   };
 
   return (
     <div>
       {isAdmin && (
-        <div className="flex justify-end mb-4">
-          <Button onClick={handleAdd}>
+        <div className="flex justify-end gap-2 mb-4">
+          <Button variant="outline" onClick={() => setIsVolunteerManagerOpen(true)}>
+            <Users className="mr-2 h-4 w-4" /> Manage Volunteers
+          </Button>
+          <Button onClick={handleAddSchedule}>
             <Plus className="mr-2 h-4 w-4" /> Add Schedule
           </Button>
         </div>
@@ -118,7 +122,7 @@ export function ScheduleManager() {
                 <TableCell>{schedule.activity}</TableCell>
                 {isAdmin && (
                   <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleEdit(schedule)}>
+                    <Button variant="ghost" size="icon" onClick={() => handleEditSchedule(schedule)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <AlertDialog>
@@ -136,7 +140,7 @@ export function ScheduleManager() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(schedule.id)} className="bg-destructive hover:bg-destructive/90">
+                          <AlertDialogAction onClick={() => handleDeleteSchedule(schedule.id)} className="bg-destructive hover:bg-destructive/90">
                             Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -151,7 +155,7 @@ export function ScheduleManager() {
         </div>
       )}
 
-      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+      <Dialog open={isScheduleFormOpen} onOpenChange={setIsScheduleFormOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}</DialogTitle>
@@ -160,6 +164,15 @@ export function ScheduleManager() {
             onSuccess={handleFormSuccess}
             schedule={editingSchedule}
           />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog open={isVolunteerManagerOpen} onOpenChange={setIsVolunteerManagerOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Manage Volunteers</DialogTitle>
+          </DialogHeader>
+          <VolunteerManager />
         </DialogContent>
       </Dialog>
     </div>

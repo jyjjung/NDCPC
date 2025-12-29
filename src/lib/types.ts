@@ -17,3 +17,8 @@ export type Schedule = {
   sermonChant: string;
   activity: string;
 };
+
+export type Volunteer = {
+    id: string;
+    name: string;
+};
