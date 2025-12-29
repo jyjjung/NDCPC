@@ -3,20 +3,20 @@
 
 import { LoginForm } from "@/components/LoginForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUser } from "@/firebase";
+import { useAdmin } from "@/context/AdminProvider";
 import { Lock } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 export default function AdminLoginPage() {
-  const { user, isUserLoading } = useUser();
+  const { isAdmin, isLoading } = useAdmin();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isUserLoading && user) {
+    if (!isLoading && isAdmin) {
       router.replace('/admin');
     }
-  }, [user, isUserLoading, router]);
+  }, [isAdmin, isLoading, router]);
 
   return (
     <div className="container flex min-h-[calc(100vh-4rem)] items-center justify-center py-12">

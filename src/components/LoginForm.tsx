@@ -10,8 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useState } from "react";
-import { useAuth } from "@/firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
 
 const formSchema = z.object({
   password: z.string().min(1, "Password is required"),
@@ -19,7 +17,7 @@ const formSchema = z.object({
 
 export function LoginForm() {
   const router = useRouter();
-  const auth = useAuth();
+  const { login } = useAdmin();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,14 +31,16 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     setError(null);
-    try {
-      await signInWithEmailAndPassword(auth, "admin@example.com", values.password);
+    
+    const success = login(values.password);
+
+    if (success) {
       router.replace("/admin");
-    } catch (e: any) {
+    } else {
       setError("Incorrect password. Please try again.");
-    } finally {
-      setIsSubmitting(false);
     }
+    
+    setIsSubmitting(false);
   }
 
   return (

@@ -1,22 +1,23 @@
+
 'use client'
 
 import { AddResourceForm } from '@/components/AddResourceForm';
-import { useUser } from '@/firebase';
+import { useAdmin } from '@/context/AdminProvider';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 
 
 export default function AddPage() {
-  const { user, isUserLoading } = useUser();
+  const { isAdmin, isLoading } = useAdmin();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isUserLoading && !user) {
+    if (!isLoading && !isAdmin) {
       router.push('/admin/login');
     }
-  }, [user, isUserLoading, router]);
+  }, [isAdmin, isLoading, router]);
 
-  if (isUserLoading || !user) {
+  if (isLoading || !isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <p>Loading...</p>

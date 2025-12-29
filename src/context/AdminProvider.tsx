@@ -3,12 +3,11 @@
 
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import React, { createContext, useContext, ReactNode } from "react";
-import { useUser, useAuth, initiateEmailSignIn } from "@/firebase";
-import { signOut } from "firebase/auth";
+import React, { createContext, useContext, ReactNode, useState, useEffect } from "react";
 
 interface AdminContextType {
   isAdmin: boolean;
+  isLoading: boolean;
   login: (password: string) => boolean;
   logout: () => void;
 }
@@ -16,36 +15,42 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
-  const { user, isUserLoading } = useUser();
-  const auth = useAuth();
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const { toast } = useToast();
 
-  const isAdmin = !!user;
+  useEffect(() => {
+    // Check session storage for admin status
+    const storedIsAdmin = sessionStorage.getItem('isAdmin');
+    if (storedIsAdmin === 'true') {
+      setIsAdmin(true);
+    }
+    setIsLoading(false);
+  }, []);
 
   const login = (password: string) => {
-    // In a real app, you'd use the admin SDK to verify a user is an admin.
-    // For now, any signed-in user is considered an admin.
-    // The password from the form is used with a hardcoded email.
-    initiateEmailSignIn(auth, "admin@example.com", password);
-    // Note: We can't immediately know if login was successful here
-    // due to the non-blocking nature. We rely on the `useUser` hook to update.
-    // A more robust solution might involve checking for errors.
-    return true; // Optimistically return true.
+    if (password === 'Admin123') {
+      setIsAdmin(true);
+      sessionStorage.setItem('isAdmin', 'true');
+      return true;
+    }
+    return false;
   };
 
   const logout = () => {
-    signOut(auth).then(() => {
-      toast({
-        title: "Logged Out",
-        description: "You have successfully logged out.",
-      });
-      router.push("/");
+    setIsAdmin(false);
+    sessionStorage.removeItem('isAdmin');
+    toast({
+      title: "Logged Out",
+      description: "You have successfully logged out.",
     });
+    router.push("/");
   };
 
   const contextValue = {
-    isAdmin: !isUserLoading && isAdmin,
+    isAdmin,
+    isLoading,
     login,
     logout,
   };
