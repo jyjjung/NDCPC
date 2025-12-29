@@ -1,5 +1,5 @@
 
-export type ResourceCategory = 'chants' | 'songs' | 'schedules' | 'announcements' | 'videos';
+export type ResourceCategory = 'chants' | 'songs' | 'schedules' | 'announcements';
 
 export type Resource = {
   id: string;

@@ -28,7 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { addResource } from "@/lib/data";
 
-const resourceCategories: Exclude<ResourceCategory, 'schedules' | 'announcements'>[] = ['chants', 'songs', 'videos'];
+const resourceCategories: Exclude<ResourceCategory, 'schedules' | 'announcements' | 'videos'>[] = ['chants', 'songs'];
 
 const formSchema = z.object({
   url: z.string().url("Please enter a valid YouTube URL.").refine(
@@ -84,9 +84,10 @@ export function AddResourceForm() {
       
       form.reset({url: '', category: undefined});
       
-      // Refresh the current route to show the new resource
-      router.refresh();
+      // Navigate to the category page which will be fresh
       router.push(`/${newResource.category}`);
+      // Refresh the router to ensure everything is up to date
+      router.refresh();
 
     } catch (error: any) {
       toast({
@@ -103,7 +104,7 @@ export function AddResourceForm() {
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-headline">Add a Resource</CardTitle>
-          <CardDescription>Submit a YouTube URL for a new song, chant, or video. It will be added to the library automatically.</CardDescription>
+          <CardDescription>Submit a YouTube URL for a new song or chant. It will be added to the library automatically.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

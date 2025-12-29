@@ -13,7 +13,6 @@ import { useState } from "react";
 const navLinks = [
   { href: "/", label: "Songs" },
   { href: "/chants", label: "Chants" },
-  { href: "/videos", label: "Videos" },
   { href: "/schedules", label: "Schedules" },
   { href: "/announcements", label: "Announcements" },
   { href: "/roster", label: "Roster" },
