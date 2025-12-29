@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState } from "react";
 import { Resource } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCollection, useFirestore, useMemoFirebase, deleteDocumentNonBlocking } from "@/firebase";
-import { collection, query, doc } from "firebase/firestore";
+import { collection, query, doc, orderBy } from "firebase/firestore";
 import { LoaderCircle, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -25,30 +24,18 @@ export function ContentManager() {
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'categories', 'songs', 'resources'));
+    return query(collection(firestore, 'resources'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
-  const { data: songResources, isLoading: isLoadingSongs } = useCollection<Omit<Resource, 'category'>>(resourcesQuery);
-
-  const chantsQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'categories', 'chants', 'resources'));
-  }, [firestore]);
-
-  const { data: chantResources, isLoading: isLoadingChants } = useCollection<Omit<Resource, 'category'>>(chantsQuery);
+  const { data: allResources, isLoading } = useCollection<Resource>(resourcesQuery);
   
-  const allResources = [
-    ...(songResources || []).map(r => ({...r, category: 'songs' as const})),
-    ...(chantResources || []).map(r => ({...r, category: 'chants' as const}))
-  ];
-
-  const handleDelete = (resource: Resource) => {
+  const handleDelete = (resourceId: string) => {
     if (!firestore) return;
-    const resourceRef = doc(firestore, 'categories', resource.category, 'resources', resource.id);
+    const resourceRef = doc(firestore, 'resources', resourceId);
     deleteDocumentNonBlocking(resourceRef);
   };
 
-  if (isLoadingSongs || isLoadingChants) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-12">
         <LoaderCircle className="h-8 w-8 animate-spin text-primary" />
@@ -63,7 +50,7 @@ export function ContentManager() {
             <CardTitle className="text-xl">Existing Resources</CardTitle>
           </CardHeader>
           <CardContent>
-            {allResources.length === 0 ? (
+            {!allResources || allResources.length === 0 ? (
                <p className="text-muted-foreground">No resources found.</p>
             ) : (
             <ul className="space-y-2">
@@ -91,7 +78,7 @@ export function ContentManager() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(res)} className="bg-destructive hover:bg-destructive/90">
+                          <AlertDialogAction onClick={() => handleDelete(res.id)} className="bg-destructive hover:bg-destructive/90">
                             Delete
                           </AlertDialogAction>
                         </AlertDialogFooter>

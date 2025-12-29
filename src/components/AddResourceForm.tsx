@@ -25,7 +25,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, serverTimestamp } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
@@ -52,6 +52,14 @@ export function AddResourceForm() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!firestore) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Firestore is not available.",
+      });
+      return;
+    }
     setIsSubmitting(true);
     
     try {
@@ -65,30 +73,25 @@ export function AddResourceForm() {
         throw new Error(data.error);
       }
 
-      const categoryId = values.category;
-      const resourcesCollectionRef = collection(firestore, 'categories', categoryId, 'resources');
+      const resourcesCollectionRef = collection(firestore, 'resources');
       
-      const newResourceId = `res-${Date.now()}`;
-
       const newResource = {
-        id: newResourceId,
         title: data.title || 'Untitled Video',
         url: values.url,
-        categoryId: categoryId,
+        category: values.category,
+        createdAt: serverTimestamp(),
       };
 
-      // We don't await this, it runs in the background
-      addDocumentNonBlocking(resourcesCollectionRef, newResource);
+      await addDocumentNonBlocking(resourcesCollectionRef, newResource);
       
       toast({
         title: "Success!",
-        description: `"${newResource.title}" has been added to the "${newResource.categoryId}" page.`
+        description: `"${newResource.title}" has been added to the "${values.category}" page.`
       });
       
       form.reset({url: '', category: undefined});
       
-      // Navigate to the category page to see the new resource
-      router.push(`/${newResource.categoryId}`);
+      router.push(`/${values.category}`);
       router.refresh();
 
     } catch (error: any) {

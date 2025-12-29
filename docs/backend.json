@@ -19,44 +19,26 @@
           "description": "URL of the resource.",
           "format": "uri"
         },
-        "categoryId": {
+        "category": {
           "type": "string",
-          "description": "Reference to Category. (Relationship: Category 1:N Resource)"
+          "description": "The category of the resource (e.g., 'songs', 'chants')."
         },
         "description": {
           "type": "string",
           "description": "A brief description of the resource."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the resource was created."
         }
       },
       "required": [
         "id",
         "title",
         "url",
-        "categoryId"
-      ]
-    },
-    "Category": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Category",
-      "type": "object",
-      "description": "Represents a category for grouping resources in the directory.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Category entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "Name of the category (e.g., Chants, Songs, Schedules)."
-        },
-        "description": {
-          "type": "string",
-          "description": "A description of the category."
-        }
-      },
-      "required": [
-        "id",
-        "name"
+        "category",
+        "createdAt"
       ]
     },
     "RosterEntry": {
@@ -120,36 +102,6 @@
         "content",
         "date"
       ]
-    },
-    "Video": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Video",
-      "type": "object",
-      "description": "Represents a video to be displayed in the application.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Video entity."
-        },
-        "title": {
-          "type": "string",
-          "description": "Title of the video."
-        },
-        "url": {
-          "type": "string",
-          "description": "URL of the video.",
-          "format": "uri"
-        },
-        "description": {
-          "type": "string",
-          "description": "A brief description of the video."
-        }
-      },
-      "required": [
-        "id",
-        "title",
-        "url"
-      ]
     }
   },
   "auth": {
@@ -161,34 +113,14 @@
   "firestore": {
     "structure": [
       {
-        "path": "/categories/{categoryId}",
-        "definition": {
-          "entityName": "Category",
-          "schema": {
-            "$ref": "#/backend/entities/Category"
-          },
-          "description": "Stores categories for grouping resources. Includes 'categoryId' as a document ID.",
-          "params": [
-            {
-              "name": "categoryId",
-              "description": "The unique identifier of the category."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/categories/{categoryId}/resources/{resourceId}",
+        "path": "/resources/{resourceId}",
         "definition": {
           "entityName": "Resource",
           "schema": {
             "$ref": "#/backend/entities/Resource"
           },
-          "description": "Stores resources associated with a category. Includes 'categoryId' and 'resourceId' as document IDs.",
+          "description": "Stores all resources like songs and chants in a single collection. Includes 'resourceId' as document ID.",
           "params": [
-            {
-              "name": "categoryId",
-              "description": "The unique identifier of the parent category."
-            },
             {
               "name": "resourceId",
               "description": "The unique identifier of the resource."
@@ -227,40 +159,8 @@
             }
           ]
         }
-      },
-      {
-        "path": "/videos/{videoId}",
-        "definition": {
-          "entityName": "Video",
-          "schema": {
-            "$ref": "#/backend/entities/Video"
-          },
-          "description": "Stores videos. Includes 'videoId' as document ID.",
-          "params": [
-            {
-              "name": "videoId",
-              "description": "The unique identifier of the video."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/roles_admin/{userId}",
-        "definition": {
-          "entityName": "user",
-          "schema": {
-            "$ref": "#/backend/entities/user"
-          },
-          "description": "Collection to store UIDs of admin users. Existence of a document grants admin privileges.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, corresponding to their Firebase UID."
-            }
-          ]
-        }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the NDC Preschooler's Church application, focusing on resource directory, roster management, and content management features. To ensure security and scalability, we adhere to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and Rules-are-not-Filters (QAPs).  \n\n**Authorization Independence:** Authorization is achieved by avoiding hierarchical `get()` calls. While the relationships exist in the application (e.g., a `Category` has many `Resources`), the security rules do not rely on fetching parent documents to authorize access to child documents.  \n\n**Structural Segregation (Homogeneous Security Posture):** Each collection is designed to have a clear and consistent security posture. For instance, all documents within the `categories` collection share the same access control requirements.\n\n**Access Modeling:**\n*   **RosterEntry and Announcement:** Data is considered globally accessible by authenticated users, as required by the use case.  Admin priviledges are handled by the `roles_admin` collection.\n*   **Category and Resource:** Data is considered globally accessible by authenticated users, as required by the use case. Admin priviledges are handled by the `roles_admin` collection.\n*   **Video:** Data is considered globally accessible by authenticated users, as required by the use case. Admin priviledges are handled by the `roles_admin` collection.\n\n**QAPs Support (Rules are not Filters):** The structure enables secure `list` operations. Since all documents in a collection share the same security posture, listing documents does not require filtering based on authorization logic within the rules themselves, promoting efficient and secure data retrieval.\n\n**Global Roles (DBAC):** Administrative privileges are managed using the `roles_admin` collection. The existence of a document with a user's UID in this collection grants admin access, adhering to the principle of \"Existence over Content.\""
+    "reasoning": "The Firestore data structure has been simplified to use a single top-level 'resources' collection for all resource types (songs, chants, etc.), distinguished by a 'category' field. This flat structure simplifies queries and data management, resolving issues with nested collections. Other collections like 'roster_entries' and 'announcements' remain as top-level collections for clarity and independent access control."
   }
 }

@@ -7,7 +7,7 @@ import { Resource, ResourceCategory } from "@/lib/types";
 import { ArrowRight, LoaderCircle } from "lucide-react";
 import Link from "next/link";
 import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
-import { collection, query } from "firebase/firestore";
+import { collection, query, where, orderBy } from "firebase/firestore";
 
 interface ResourceListProps {
   category: ResourceCategory;
@@ -26,7 +26,12 @@ export function ResourceList({ category }: ResourceListProps) {
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'categories', category, 'resources'));
+    // Query the single 'resources' collection and filter by category
+    return query(
+      collection(firestore, 'resources'), 
+      where('category', '==', category),
+      orderBy('createdAt', 'desc')
+    );
   }, [firestore, category]);
 
   const { data: resources, isLoading } = useCollection<Omit<Resource, 'category'>>(resourcesQuery);

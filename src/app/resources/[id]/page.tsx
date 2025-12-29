@@ -16,15 +16,16 @@ function getYouTubeVideoId(url: string) {
 }
 
 export default function ResourcePage({ params }: { params: { id: string } }) {
-  const id = params.id;
+  const { id } = params;
   const firestore = useFirestore();
   const searchParams = useSearchParams();
   const category = searchParams.get('category');
 
   const resourceRef = useMemoFirebase(() => {
-    if (!firestore || !category) return null;
-    return doc(firestore, 'categories', category, 'resources', id)
-  }, [firestore, category, id]);
+    if (!firestore) return null;
+    // All resources are in a single top-level collection now
+    return doc(firestore, 'resources', id);
+  }, [firestore, id]);
 
   const { data: resource, isLoading } = useDoc<Resource>(resourceRef);
 
@@ -41,12 +42,13 @@ export default function ResourcePage({ params }: { params: { id: string } }) {
   }
 
   const youtubeVideoId = getYouTubeVideoId(resource.url);
+  const backUrl = category ? `/${category}` : '/';
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-4">
         <Button asChild variant="outline">
-          <Link href={`/${category}`} className="gap-2">
+          <Link href={backUrl} className="gap-2">
             <ArrowLeft />
             Back to Resources
           </Link>
