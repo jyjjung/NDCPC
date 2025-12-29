@@ -1,0 +1,187 @@
+/**
+ * Core Philosophy: This ruleset implements a role-based access control (RBAC) model.
+ * A dedicated `/roles_admin` collection manages administrative privileges.
+ * Users with a document in this collection ('admins') have full write access
+ * to all content collections. All other authenticated users have read-only access.
+ * Unauthenticated access is denied everywhere.
+ *
+ * Data Structure: The database uses several top-level collections for content:
+ * `/categories`, `/roster_entries`, `/announcements`, and `/videos`. Resources
+ * are nested within categories under `/categories/{categoryId}/resources`.
+ * A special top-level collection, `/roles_admin`, is used exclusively for authorization.
+ *
+ * Key Security Decisions:
+ * - Admin-Only Writes: All create, update, and delete operations on content are
+ *   restricted to admin users to protect data integrity.
+ * - Authenticated Reads: Any user who is signed in can read data from the content
+ *   collections, supporting the application's primary function as a resource hub.
+ * - Secure Role Management: The `/roles_admin` collection is locked down so that
+ *   only existing admins can view or modify the list of administrators.
+ * - Relational Integrity: On document creation, rules ensure that internal ID fields
+ *   (e.g., `resource.data.id`, `resource.data.categoryId`) match the document path
+ *   to prevent data misallocation. These fields are immutable on update.
+ *
+ * Denormalization for Authorization: Instead of using custom claims, authorization
+ * is managed within the database via the `/roles_admin` collection. A user's admin
+ * status is determined by the existence of a document at `/roles_admin/{request.auth.uid}`.
+ * This `exists()` check is highly performant and allows for dynamic role management.
+ *
+ * Structural Segregation: Each collection has a uniform security posture (read-only
+ * for authenticated users, writeable by admins). This clear separation simplifies
+ * rules and enables safe, efficient list queries.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------------------
+    // Helper Functions
+    // --------------------------------------------------------------------
+
+    /**
+     * Returns true if the user is signed in.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Returns true if the requesting user is an admin.
+     * Admin status is granted by the existence of a document in the roles_admin collection.
+     */
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/roles_admin/$(request.auth.uid));
+    }
+
+    /**
+     * Returns true if the document being operated on already exists.
+     * Used to protect against updates or deletes of non-existent documents.
+     */
+    function documentExists() {
+      return resource != null;
+    }
+
+    /**
+     * Validates that the document's internal 'id' field matches its ID in the path.
+     * Enforces data and path consistency on document creation.
+     */
+    function hasValidIdOnCreate(docId) {
+      return request.resource.data.id == docId;
+    }
+
+    /**
+     * Enforces that the document's internal 'id' field is immutable on update.
+     */
+    function isIdImmutable() {
+      return request.resource.data.id == resource.data.id;
+    }
+
+    /**
+     * Validates that a new resource's 'categoryId' field matches its parent category ID.
+     * Enforces the relational link between a resource and its parent category on creation.
+     */
+    function hasValidCategoryOnCreate(categoryId) {
+      return request.resource.data.categoryId == categoryId;
+    }
+
+    /**
+     * Enforces that a resource's 'categoryId' field is immutable on update.
+     */
+    function isCategoryImmutable() {
+      return request.resource.data.categoryId == resource.data.categoryId;
+    }
+
+    // --------------------------------------------------------------------
+    // Collection Rules
+    // --------------------------------------------------------------------
+
+    /**
+     * @description Admins can manage categories; any signed-in user can read them.
+     * @path /categories/{categoryId}
+     * @allow (get) A signed-in user reads a specific category document.
+     * @allow (create) An admin user creates a new category.
+     * @deny (update) A non-admin signed-in user tries to update a category.
+     * @principle Role-based access control (Admin writes, Authenticated reads).
+     */
+    match /categories/{categoryId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && hasValidIdOnCreate(categoryId);
+      allow update: if isAdmin() && documentExists() && isIdImmutable();
+      allow delete: if isAdmin() && documentExists();
+
+      /**
+       * @description Admins manage resources; signed-in users read them. Enforces parent linkage.
+       * @path /categories/{categoryId}/resources/{resourceId}
+       * @allow (list) A signed-in user lists all resources for a given category.
+       * @allow (create) An admin creates a resource, ensuring its categoryId matches the path.
+       * @deny (create) An admin creates a resource with a mismatched categoryId.
+       * @principle Enforces relational integrity and role-based access.
+       */
+      match /resources/{resourceId} {
+        allow get, list: if isSignedIn();
+        allow create: if isAdmin() && hasValidIdOnCreate(resourceId) && hasValidCategoryOnCreate(categoryId);
+        allow update: if isAdmin() && documentExists() && isIdImmutable() && isCategoryImmutable();
+        allow delete: if isAdmin() && documentExists();
+      }
+    }
+
+    /**
+     * @description Admins can manage roster entries; any signed-in user can read them.
+     * @path /roster_entries/{rosterEntryId}
+     * @allow (list) A signed-in user lists all roster entries.
+     * @allow (delete) An admin user deletes a roster entry.
+     * @deny (create) A non-admin signed-in user tries to create a roster entry.
+     * @principle Role-based access control (Admin writes, Authenticated reads).
+     */
+    match /roster_entries/{rosterEntryId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && hasValidIdOnCreate(rosterEntryId);
+      allow update: if isAdmin() && documentExists() && isIdImmutable();
+      allow delete: if isAdmin() && documentExists();
+    }
+
+    /**
+     * @description Admins can manage announcements; any signed-in user can read them.
+     * @path /announcements/{announcementId}
+     * @allow (get) A signed-in user reads a specific announcement.
+     * @allow (update) An admin user updates an existing announcement.
+     * @deny (delete) A non-admin signed-in user tries to delete an announcement.
+     * @principle Role-based access control (Admin writes, Authenticated reads).
+     */
+    match /announcements/{announcementId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && hasValidIdOnCreate(announcementId);
+      allow update: if isAdmin() && documentExists() && isIdImmutable();
+      allow delete: if isAdmin() && documentExists();
+    }
+
+    /**
+     * @description Admins can manage videos; any signed-in user can read them.
+     * @path /videos/{videoId}
+     * @allow (list) A signed-in user lists all available videos.
+     * @allow (create) An admin user adds a new video.
+     * @deny (update) A non-admin signed-in user tries to change a video's details.
+     * @principle Role-based access control (Admin writes, Authenticated reads).
+     */
+    match /videos/{videoId} {
+      allow get, list: if isSignedIn();
+      allow create: if isAdmin() && hasValidIdOnCreate(videoId);
+      allow update: if isAdmin() && documentExists() && isIdImmutable();
+      allow delete: if isAdmin() && documentExists();
+    }
+
+    /**
+     * @description Secures the admin role management collection. Only existing admins can read or write.
+     * @path /roles_admin/{userId}
+     * @allow (create) An existing admin grants another user admin privileges.
+     * @allow (delete) An existing admin revokes another user's admin privileges.
+     * @deny (get) A non-admin user tries to see who the admins are.
+     * @deny (create) A non-admin user tries to make themselves an admin.
+     * @principle Secures the role-management collection to prevent privilege escalation.
+     */
+    match /roles_admin/{userId} {
+      allow get, list: if isAdmin();
+      allow create, update, delete: if isAdmin();
+    }
+  }
+}
