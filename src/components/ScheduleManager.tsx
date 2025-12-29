@@ -9,21 +9,13 @@ import { collection, query, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScheduleForm } from './ScheduleForm';
-import { LoaderCircle, Plus, Trash2, Edit, Users } from 'lucide-react';
+import { LoaderCircle, Plus, Trash2, Edit, Users, Calendar, User, Gift, MicVocal, ToyBrick } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -36,6 +28,8 @@ import {
     AlertDialogTrigger,
   } from "@/components/ui/alert-dialog"
 import { VolunteerManager } from './VolunteerManager';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
+import { Card, CardContent } from './ui/card';
 
 export function ScheduleManager() {
   const { isAdmin } = useAdmin();
@@ -72,10 +66,17 @@ export function ScheduleManager() {
     setEditingSchedule(null);
   };
 
+  const scheduleRoles = [
+    { key: 'worship', label: 'Worship', icon: Calendar },
+    { key: 'offering', label: 'Offering', icon: Gift },
+    { key: 'sermonChant', label: 'Sermon Chant', icon: MicVocal },
+    { key: 'activity', label: 'Activity', icon: ToyBrick },
+  ];
+
   return (
     <div>
       {isAdmin && (
-        <div className="flex justify-end gap-2 mb-4">
+        <div className="flex flex-wrap justify-end gap-2 mb-4">
           <Button variant="outline" onClick={() => setIsVolunteerManagerOpen(true)}>
             <Users className="mr-2 h-4 w-4" /> Manage Volunteers
           </Button>
@@ -98,61 +99,59 @@ export function ScheduleManager() {
       )}
 
       {!isLoading && schedules && schedules.length > 0 && (
-        <div className="rounded-lg border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Worship</TableHead>
-              <TableHead>Offering</TableHead>
-              <TableHead>Sermon Chant</TableHead>
-              <TableHead>Activity</TableHead>
-              {isAdmin && <TableHead className="text-right">Actions</TableHead>}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {schedules.map(schedule => (
-              <TableRow key={schedule.id}>
-                <TableCell className="font-semibold">
-                  {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'Invalid Date'}
-                </TableCell>
-                <TableCell>{schedule.worship}</TableCell>
-                <TableCell>{schedule.offering}</TableCell>
-                <TableCell>{schedule.sermonChant}</TableCell>
-                <TableCell>{schedule.activity}</TableCell>
-                {isAdmin && (
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="icon" onClick={() => handleEditSchedule(schedule)}>
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                           <Trash2 className="h-4 w-4" />
+        <Accordion type="single" collapsible className="w-full space-y-2">
+          {schedules.map(schedule => (
+            <AccordionItem value={schedule.id} key={schedule.id} className="rounded-lg border px-4 transition-all hover:shadow-md hover:-translate-y-1">
+              <AccordionTrigger className="py-4 font-semibold no-underline hover:no-underline">
+                <div className="flex flex-1 items-center justify-between gap-2">
+                    <span className="text-left">
+                        {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'Invalid Date'}
+                    </span>
+
+                    {isAdmin && (
+                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                        <Button variant="ghost" size="icon" onClick={() => handleEditSchedule(schedule)}>
+                            <Edit className="h-4 w-4" />
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            This action cannot be undone. This will permanently delete the schedule for {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'this date'}.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDeleteSchedule(schedule.id)} className="bg-destructive hover:bg-destructive/90">
-                            Delete
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </TableCell>
-                )}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-        </div>
+                        <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                This action cannot be undone. This will permanently delete the schedule for {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'this date'}.
+                            </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteSchedule(schedule.id)} className="bg-destructive hover:bg-destructive/90">
+                                Delete
+                            </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                        </AlertDialog>
+                    </div>
+                    )}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-3 pt-2 pb-4">
+                  {scheduleRoles.map(role => (
+                     <div key={role.key} className="flex items-center text-sm">
+                        <role.icon className="h-4 w-4 mr-3 text-primary" />
+                        <span className="font-medium w-28">{role.label}:</span>
+                        <span className="text-muted-foreground">{(schedule as any)[role.key]}</span>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          ))}
+        </Accordion>
       )}
 
       <Dialog open={isScheduleFormOpen} onOpenChange={setIsScheduleFormOpen}>
