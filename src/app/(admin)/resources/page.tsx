@@ -17,7 +17,6 @@ import { AddResourceForm } from '@/components/AddResourceForm';
 import { useFirestore } from '@/firebase';
 import { doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-import { useAdmin } from '@/context/AdminProvider';
 
 export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState('songs');
@@ -26,7 +25,6 @@ export default function ResourcesPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { isAdmin } = useAdmin();
 
   const handleSelectionChange = (resourceId: string, isSelected: boolean) => {
     setSelectedResources(prev =>
@@ -86,44 +84,42 @@ export default function ResourcesPage() {
           </TabsTrigger>
         </TabsList>
 
-        {isAdmin && (
-            <div className="flex justify-end gap-2 mt-4">
-                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-                <DialogTrigger asChild>
-                    <Button variant="outline">
-                    <Plus className="mr-2 h-4 w-4" /> {addResourceText}
-                    </Button>
-                </DialogTrigger>
-                <DialogContent>
-                    <DialogHeader>
-                    <DialogTitle>{dialogTitle}</DialogTitle>
-                    <DialogDescription>
-                        Submit a YouTube URL for a new song or chant.
-                    </DialogDescription>
-                    </DialogHeader>
-                    <AddResourceForm
-                    initialCategory={activeTab as 'songs' | 'chants'}
-                    onSuccess={() => setIsAddOpen(false)}
-                    />
-                </DialogContent>
-                </Dialog>
-
-                <Button variant="outline" onClick={toggleManageMode}>
-                {isManageMode ? <X className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
-                {isManageMode ? 'Cancel' : 'Manage'}
+        <div className="flex justify-end gap-2 mt-4">
+            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+            <DialogTrigger asChild>
+                <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" /> {addResourceText}
                 </Button>
+            </DialogTrigger>
+            <DialogContent>
+                <DialogHeader>
+                <DialogTitle>{dialogTitle}</DialogTitle>
+                <DialogDescription>
+                    Submit a YouTube URL for a new song or chant.
+                </DialogDescription>
+                </DialogHeader>
+                <AddResourceForm
+                initialCategory={activeTab as 'songs' | 'chants'}
+                onSuccess={() => setIsAddOpen(false)}
+                />
+            </DialogContent>
+            </Dialog>
 
-                {isManageMode && selectedResources.length > 0 && (
-                <Button
-                    variant="destructive"
-                    onClick={handleDeleteSelected}
-                >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete ({selectedResources.length})
-                </Button>
-                )}
-            </div>
-        )}
+            <Button variant="outline" onClick={toggleManageMode}>
+            {isManageMode ? <X className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
+            {isManageMode ? 'Cancel' : 'Manage'}
+            </Button>
+
+            {isManageMode && selectedResources.length > 0 && (
+            <Button
+                variant="destructive"
+                onClick={handleDeleteSelected}
+            >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete ({selectedResources.length})
+            </Button>
+            )}
+        </div>
 
         <TabsContent value="songs">
           <ResourceList
