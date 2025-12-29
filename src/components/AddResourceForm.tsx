@@ -8,13 +8,6 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Form,
   FormControl,
   FormField,
@@ -31,13 +24,10 @@ const formSchema = z.object({
     (url) => url.includes("youtube.com/watch") || url.includes("youtu.be"),
     "Please provide a valid YouTube URL."
   ),
-  category: z.enum(['songs', 'chants'], {
-    required_error: "You need to select a resource type.",
-  }),
 });
 
 interface AddResourceFormProps {
-  initialCategory?: 'songs' | 'chants';
+  initialCategory: 'songs' | 'chants';
   onSuccess?: () => void;
 }
 
@@ -50,12 +40,11 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
     resolver: zodResolver(formSchema),
     defaultValues: {
       url: "",
-      category: initialCategory,
     }
   });
 
   useEffect(() => {
-    form.reset({ url: '', category: initialCategory });
+    form.reset({ url: '' });
   }, [initialCategory, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -85,7 +74,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
       const newResource = {
         title: data.title || 'Untitled Video',
         url: values.url,
-        category: values.category,
+        category: initialCategory,
         createdAt: serverTimestamp(),
       };
 
@@ -93,10 +82,10 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
       
       toast({
         title: "Success!",
-        description: `"${newResource.title}" has been added to the "${values.category}" page.`
+        description: `"${newResource.title}" has been added to the "${initialCategory}" page.`
       });
       
-      form.reset({url: '', category: initialCategory});
+      form.reset({url: ''});
       
       if (onSuccess) {
         onSuccess();
@@ -126,27 +115,6 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
                 <FormControl>
                   <Input placeholder="https://youtube.com/watch?v=..." {...field} />
                 </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-           <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="songs">Song</SelectItem>
-                    <SelectItem value="chants">Chant</SelectItem>
-                  </SelectContent>
-                </Select>
                 <FormMessage />
               </FormItem>
             )}
