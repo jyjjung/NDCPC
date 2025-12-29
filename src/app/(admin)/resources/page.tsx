@@ -17,6 +17,8 @@ import { AddResourceForm } from '@/components/AddResourceForm';
 import { useFirestore } from '@/firebase';
 import { doc, writeBatch } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { useAdmin } from '@/context/AdminProvider';
+import { AdminGate } from '@/components/AdminGate';
 
 export default function ResourcesPage() {
   const [activeTab, setActiveTab] = useState('songs');
@@ -25,6 +27,7 @@ export default function ResourcesPage() {
   const [isAddOpen, setIsAddOpen] = useState(false);
   const firestore = useFirestore();
   const { toast } = useToast();
+  const { isAdmin } = useAdmin();
 
   const handleSelectionChange = (resourceId: string, isSelected: boolean) => {
     setSelectedResources(prev =>
@@ -70,6 +73,7 @@ export default function ResourcesPage() {
   const dialogTitle = activeTab === 'songs' ? 'Add a New Song' : 'Add a New Chant';
 
   return (
+    <AdminGate>
     <div className="container mx-auto px-4 py-8">
       <h1 className="text-3xl font-headline mb-6">Resources</h1>
       <Tabs defaultValue="songs" className="w-full" onValueChange={setActiveTab}>
@@ -84,42 +88,44 @@ export default function ResourcesPage() {
           </TabsTrigger>
         </TabsList>
 
-        <div className="flex justify-end gap-2 mt-4">
-            <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
-            <DialogTrigger asChild>
-                <Button variant="outline">
-                <Plus className="mr-2 h-4 w-4" /> {addResourceText}
+        {isAdmin && (
+            <div className="flex justify-end gap-2 mt-4">
+                <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline">
+                    <Plus className="mr-2 h-4 w-4" /> {addResourceText}
+                    </Button>
+                </DialogTrigger>
+                <DialogContent>
+                    <DialogHeader>
+                    <DialogTitle>{dialogTitle}</DialogTitle>
+                    <DialogDescription>
+                        Submit a YouTube URL for a new song or chant.
+                    </DialogDescription>
+                    </DialogHeader>
+                    <AddResourceForm
+                    initialCategory={activeTab as 'songs' | 'chants'}
+                    onSuccess={() => setIsAddOpen(false)}
+                    />
+                </DialogContent>
+                </Dialog>
+
+                <Button variant="outline" onClick={toggleManageMode}>
+                {isManageMode ? <X className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                {isManageMode ? 'Cancel' : 'Manage'}
                 </Button>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                <DialogTitle>{dialogTitle}</DialogTitle>
-                <DialogDescription>
-                    Submit a YouTube URL for a new song or chant.
-                </DialogDescription>
-                </DialogHeader>
-                <AddResourceForm
-                initialCategory={activeTab as 'songs' | 'chants'}
-                onSuccess={() => setIsAddOpen(false)}
-                />
-            </DialogContent>
-            </Dialog>
 
-            <Button variant="outline" onClick={toggleManageMode}>
-            {isManageMode ? <X className="mr-2 h-4 w-4" /> : <Trash2 className="mr-2 h-4 w-4" />}
-            {isManageMode ? 'Cancel' : 'Manage'}
-            </Button>
-
-            {isManageMode && selectedResources.length > 0 && (
-            <Button
-                variant="destructive"
-                onClick={handleDeleteSelected}
-            >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete ({selectedResources.length})
-            </Button>
-            )}
-        </div>
+                {isManageMode && selectedResources.length > 0 && (
+                <Button
+                    variant="destructive"
+                    onClick={handleDeleteSelected}
+                >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete ({selectedResources.length})
+                </Button>
+                )}
+            </div>
+        )}
 
         <TabsContent value="songs">
           <ResourceList
@@ -139,5 +145,6 @@ export default function ResourcesPage() {
         </TabsContent>
       </Tabs>
     </div>
+    </AdminGate>
   );
 }
