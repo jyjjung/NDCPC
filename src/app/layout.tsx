@@ -3,7 +3,6 @@ import './globals.css';
 import 'react-day-picker/dist/style.css';
 import { cn } from '@/lib/utils';
 import { AdminProvider } from '@/context/AdminProvider';
-import { Header } from '@/components/Header';
 import { Toaster } from "@/components/ui/toaster";
 import { FirebaseClientProvider } from '@/firebase';
 
@@ -27,10 +26,7 @@ export default function RootLayout({
       <body className={cn('min-h-screen bg-background font-body antialiased')}>
         <FirebaseClientProvider>
           <AdminProvider>
-            <div className="relative flex min-h-screen flex-col">
-              <Header />
-              <main className="flex-1">{children}</main>
-            </div>
+            {children}
             <Toaster />
           </AdminProvider>
         </FirebaseClientProvider>
