@@ -11,8 +11,7 @@ import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/s
 import { useState } from "react";
 
 const navLinks = [
-  { href: "/", label: "Songs" },
-  { href: "/chants", label: "Chants" },
+  { href: "/", label: "Resources" },
   { href: "/schedules", label: "Schedules" },
   { href: "/announcements", label: "Announcements" },
   { href: "/roster", label: "Roster" },
