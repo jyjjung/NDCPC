@@ -22,7 +22,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { addWeeks, format, nextSunday, subWeeks } from 'date-fns';
 
 const formSchema = z.object({
-  date: z.date({
+  date: z.string({
     required_error: 'A date is required.',
   }),
   worship: z.string().min(1, 'Worship leader name is required.'),
@@ -44,13 +44,13 @@ const getSundays = () => {
     const today = new Date();
     let currentSunday = nextSunday(today);
     
-    // Add 52 past Sundays
-    for (let i = 52; i > 0; i--) {
+    // Add 10 past Sundays
+    for (let i = 10; i > 0; i--) {
         sundays.push(subWeeks(currentSunday, i));
     }
 
-    // Add current/next and 52 future Sundays
-    for (let i = 0; i < 52; i++) {
+    // Add current/next and 20 future Sundays
+    for (let i = 0; i < 20; i++) {
         sundays.push(addWeeks(currentSunday, i));
     }
     return sundays;
@@ -74,7 +74,7 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      date: defaultSunday,
+      date: defaultSunday.toISOString(),
       worship: '',
       offering: '',
       sermonChant: '',
@@ -86,11 +86,11 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
     if (schedule) {
       form.reset({
         ...schedule,
-        date: schedule.date?.seconds ? new Date(schedule.date.seconds * 1000) : defaultSunday,
+        date: schedule.date?.seconds ? new Date(schedule.date.seconds * 1000).toISOString() : defaultSunday.toISOString(),
       });
     } else {
         form.reset({
-            date: defaultSunday,
+            date: defaultSunday.toISOString(),
             worship: '',
             offering: '',
             sermonChant: '',
@@ -106,7 +106,7 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
     try {
         const scheduleData = {
             ...values,
-            date: Timestamp.fromDate(values.date),
+            date: Timestamp.fromDate(new Date(values.date)),
         };
 
         if (schedule?.id) {
@@ -166,8 +166,8 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
             <FormItem>
               <FormLabel>Date</FormLabel>
                 <Select 
-                    onValueChange={(value) => field.onChange(new Date(value))} 
-                    value={field.value?.toISOString()}
+                    onValueChange={field.onChange} 
+                    value={field.value}
                     defaultValue={defaultSunday.toISOString()}
                 >
                     <FormControl>
