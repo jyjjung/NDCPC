@@ -26,7 +26,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, doc, setDoc, Timestamp, query, orderBy } from 'firebase/firestore';
 import type { Schedule, Volunteer } from '@/lib/types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 
 const formSchema = z.object({
@@ -49,6 +49,8 @@ interface ScheduleFormProps {
 export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
 
   const volunteersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -123,7 +125,7 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
       render={({ field }) => (
         <FormItem>
           <FormLabel>{label}</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Select a person" />
@@ -151,7 +153,7 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
           render={({ field }) => (
             <FormItem className="flex flex-col">
               <FormLabel>Date</FormLabel>
-              <Popover>
+              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
@@ -174,7 +176,11 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
                   <Calendar
                     mode="single"
                     selected={field.value}
-                    onSelect={field.onChange}
+                    onSelect={(date) => {
+                        field.onChange(date);
+                        setIsPopoverOpen(false);
+                    }}
+                    onClear={() => field.onChange(undefined)}
                     disabled={(date) => date < new Date("1900-01-01")}
                     initialFocus
                   />
