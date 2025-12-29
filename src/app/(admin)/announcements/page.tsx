@@ -17,7 +17,7 @@ export default function AnnouncementsPage() {
           </div>
         </CardHeader>
         <CardContent>
-          <ResourceList category="announcements" />
+          {/* This will be replaced by a dedicated announcement list */}
         </CardContent>
       </Card>
     </div>

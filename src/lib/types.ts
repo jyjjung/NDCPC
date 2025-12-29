@@ -22,3 +22,10 @@ export type Volunteer = {
     id: string;
     name: string;
 };
+
+export type Announcement = {
+  id: string;
+  title: string;
+  content: string;
+  date: any; // Firestore Timestamp
+};
