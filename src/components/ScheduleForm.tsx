@@ -17,7 +17,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, doc, setDoc, Timestamp, query, orderBy } from 'firebase/firestore';
 import type { Schedule, Volunteer } from '@/lib/types';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { addWeeks, format, nextSunday, subWeeks } from 'date-fns';
 
@@ -60,8 +60,8 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const sundays = getSundays();
-  const defaultSunday = nextSunday(new Date());
+  const sundays = useMemo(() => getSundays(), []);
+  const defaultSunday = useMemo(() => nextSunday(new Date()), []);
 
 
   const volunteersQuery = useMemoFirebase(() => {
