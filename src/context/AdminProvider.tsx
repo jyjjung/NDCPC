@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useToast } from "@/hooks/use-toast";
@@ -13,7 +14,7 @@ interface AdminContextType {
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 // In a real app, this would be a more secure secret, likely an environment variable.
-const ADMIN_PASSWORD = "password123";
+const ADMIN_PASSWORD = "Admin123";
 
 export const AdminProvider = ({ children }: { children: ReactNode }) => {
   const [isAdmin, setIsAdmin] = useState(false);
