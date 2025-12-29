@@ -29,7 +29,6 @@ import {
   } from "@/components/ui/alert-dialog"
 import { VolunteerManager } from './VolunteerManager';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from './ui/accordion';
-import { Card, CardContent } from './ui/card';
 
 export function ScheduleManager() {
   const { isAdmin } = useAdmin();
@@ -103,42 +102,40 @@ export function ScheduleManager() {
         <Accordion type="single" collapsible className="w-full space-y-2">
           {schedules.map(schedule => (
             <AccordionItem value={schedule.id} key={schedule.id} className="rounded-lg border px-4 transition-all hover:shadow-md hover:-translate-y-1">
-              <AccordionTrigger className="py-4 font-semibold no-underline hover:no-underline">
-                <div className="flex flex-1 items-center justify-between gap-2">
-                    <span className="text-left">
-                        {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'Invalid Date'}
-                    </span>
+               <div className="flex items-center w-full">
+                <AccordionTrigger className="flex-1 py-4 font-semibold text-left no-underline hover:no-underline">
+                    {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'Invalid Date'}
+                </AccordionTrigger>
 
-                    {isAdmin && (
-                    <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        <Button variant="ghost" size="icon" onClick={() => handleEditSchedule(schedule)}>
-                            <Edit className="h-4 w-4" />
+                {isAdmin && (
+                <div className="flex items-center gap-1 shrink-0 ml-2">
+                    <Button variant="ghost" size="icon" onClick={() => handleEditSchedule(schedule)}>
+                        <Edit className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4" />
                         </Button>
-                        <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                            </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the schedule for {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'this date'}.
-                            </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteSchedule(schedule.id)} className="bg-destructive hover:bg-destructive/90">
-                                Delete
-                            </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                        </AlertDialog>
-                    </div>
-                    )}
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                        <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete the schedule for {schedule.date?.seconds ? format(new Date(schedule.date.seconds * 1000), 'PPP') : 'this date'}.
+                        </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => handleDeleteSchedule(schedule.id)} className="bg-destructive hover:bg-destructive/90">
+                            Delete
+                        </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                    </AlertDialog>
                 </div>
-              </AccordionTrigger>
+                )}
+              </div>
               <AccordionContent>
                 <div className="space-y-3 pt-2 pb-4">
                   {scheduleRoles.map(role => (
