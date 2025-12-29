@@ -13,21 +13,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-  } from "@/components/ui/popover"
-import { Calendar } from "@/components/ui/calendar"
-import { CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, addDoc, doc, setDoc, Timestamp, query, orderBy } from 'firebase/firestore';
 import type { Schedule, Volunteer } from '@/lib/types';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
+import { addWeeks, format, nextSunday, subWeeks } from 'date-fns';
 
 const formSchema = z.object({
   date: z.date({
@@ -46,10 +38,30 @@ interface ScheduleFormProps {
   schedule?: Schedule | null;
 }
 
+// Helper to generate a list of Sundays
+const getSundays = () => {
+    const sundays = [];
+    const today = new Date();
+    let currentSunday = nextSunday(today);
+    
+    // Add 52 past Sundays
+    for (let i = 52; i > 0; i--) {
+        sundays.push(subWeeks(currentSunday, i));
+    }
+
+    // Add current/next and 52 future Sundays
+    for (let i = 0; i < 52; i++) {
+        sundays.push(addWeeks(currentSunday, i));
+    }
+    return sundays;
+}
+
 export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
   const firestore = useFirestore();
   const { toast } = useToast();
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  
+  const sundays = getSundays();
+  const defaultSunday = nextSunday(new Date());
 
 
   const volunteersQuery = useMemoFirebase(() => {
@@ -62,7 +74,7 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
   const form = useForm<ScheduleFormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      date: undefined,
+      date: defaultSunday,
       worship: '',
       offering: '',
       sermonChant: '',
@@ -74,18 +86,18 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
     if (schedule) {
       form.reset({
         ...schedule,
-        date: schedule.date?.seconds ? new Date(schedule.date.seconds * 1000) : new Date(),
+        date: schedule.date?.seconds ? new Date(schedule.date.seconds * 1000) : defaultSunday,
       });
     } else {
         form.reset({
-            date: undefined,
+            date: defaultSunday,
             worship: '',
             offering: '',
             sermonChant: '',
             activity: '',
         })
     }
-  }, [schedule, form]);
+  }, [schedule, form, defaultSunday]);
 
 
   const onSubmit = async (values: ScheduleFormValues) => {
@@ -151,41 +163,26 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
           control={form.control}
           name="date"
           render={({ field }) => (
-            <FormItem className="flex flex-col">
+            <FormItem>
               <FormLabel>Date</FormLabel>
-              <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant={"outline"}
-                      className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
-                      )}
-                    >
-                      {field.value ? (
-                        format(field.value, "PPP")
-                      ) : (
-                        <span>Pick a date</span>
-                      )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={field.value}
-                    onSelect={(date) => {
-                        field.onChange(date);
-                        setIsPopoverOpen(false);
-                    }}
-                    onClear={() => field.onChange(undefined)}
-                    disabled={(date) => date < new Date("1900-01-01")}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
+                <Select 
+                    onValueChange={(value) => field.onChange(new Date(value))} 
+                    value={field.value?.toISOString()}
+                    defaultValue={defaultSunday.toISOString()}
+                >
+                    <FormControl>
+                    <SelectTrigger>
+                        <SelectValue placeholder="Select a Sunday" />
+                    </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                        {sundays.map(sunday => (
+                            <SelectItem key={sunday.toISOString()} value={sunday.toISOString()}>
+                                {format(sunday, "PPP")}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
               <FormMessage />
             </FormItem>
           )}
