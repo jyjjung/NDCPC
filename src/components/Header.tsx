@@ -1,12 +1,10 @@
-
 "use client";
 
 import Link from "next/link";
 import { Church, Menu, LogIn, LogOut } from "lucide-react";
 import { useAdmin } from "@/context/AdminProvider";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { SidebarNav } from "./SidebarNav";
 
@@ -17,7 +15,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="lg:hidden">
+        <div className="sm:hidden">
             <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
               <SheetTrigger asChild>
                 <Button variant="outline" size="icon" className="mr-4">
@@ -35,8 +33,8 @@ export function Header() {
             </Sheet>
           </div>
           
-        <Link href="/" className="mr-6 flex items-center gap-2">
-          <Church className="h-6 w-6 text-primary lg:hidden" />
+        <Link href="/" className="mr-6 flex items-center gap-2 sm:hidden">
+          <Church className="h-6 w-6 text-primary" />
           <span className="font-bold font-headline sm:inline-block">NDC Preschool Church</span>
         </Link>
 

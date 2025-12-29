@@ -11,7 +11,7 @@ export function Sidebar() {
       <div className="flex h-16 items-center border-b px-6">
         <Link href="/" className="flex items-center gap-2 font-semibold">
           <Church className="h-6 w-6 text-primary" />
-          <span className="">NDC Preschool</span>
+          <span className="font-bold font-headline">NDC Preschool</span>
         </Link>
       </div>
       <div className="flex-1 overflow-auto py-4">
