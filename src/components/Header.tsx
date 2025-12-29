@@ -3,7 +3,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Church, Menu, LogIn, LogOut, PlusCircle } from "lucide-react";
+import { Church, Menu, LogIn, LogOut, PlusCircle, Video } from "lucide-react";
 import { useAdmin } from "@/context/AdminProvider";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,7 @@ import { useState } from "react";
 const navLinks = [
   { href: "/", label: "Songs" },
   { href: "/chants", label: "Chants" },
+  { href: "/videos", label: "Videos" },
   { href: "/schedules", label: "Schedules" },
   { href: "/announcements", label: "Announcements" },
   { href: "/roster", label: "Roster" },
@@ -56,6 +57,26 @@ export function Header() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
+        <div className="md:hidden">
+            <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
+              <SheetTrigger asChild>
+                <Button variant="outline" size="icon" className="mr-2">
+                  <Menu className="h-4 w-4" />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <SheetTitle className="sr-only">Menu</SheetTitle>
+                <Link href="/" className="mr-6 flex items-center gap-2 mb-8" onClick={() => setSheetOpen(false)}>
+                  <Church className="h-6 w-6 text-primary" />
+                  <span className="font-bold font-headline">NDC Preschool</span>
+                </Link>
+                <nav className="flex flex-col items-start gap-6 text-lg">
+                  {navItems}
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         <Link href="/" className="mr-6 flex items-center gap-2">
           <Church className="h-6 w-6 text-primary" />
           <span className="hidden font-bold font-headline sm:inline-block">NDC Preschool</span>
@@ -85,26 +106,6 @@ export function Header() {
               </Link>
             </Button>
           )}
-           <div className="md:hidden">
-            <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-              <SheetTrigger asChild>
-                <Button variant="outline" size="icon" className="ml-2">
-                  <Menu className="h-4 w-4" />
-                  <span className="sr-only">Open menu</span>
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left">
-                 <SheetTitle className="sr-only">Menu</SheetTitle>
-                <Link href="/" className="mr-6 flex items-center gap-2 mb-8" onClick={() => setSheetOpen(false)}>
-                  <Church className="h-6 w-6 text-primary" />
-                  <span className="font-bold font-headline">NDC Preschool</span>
-                </Link>
-                <nav className="flex flex-col items-start gap-6 text-lg">
-                  {navItems}
-                </nav>
-              </SheetContent>
-            </Sheet>
-          </div>
         </div>
       </div>
     </header>

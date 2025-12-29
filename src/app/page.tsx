@@ -1,10 +1,10 @@
 
-import { resources } from '@/lib/data';
+import { getResources } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResourceList } from '@/components/ResourceList';
 
 export default function Home() {
-  const songResources = resources.filter(r => r.category === 'songs');
+  const songResources = getResources('songs');
 
   return (
     <div className="container mx-auto px-4 py-8">

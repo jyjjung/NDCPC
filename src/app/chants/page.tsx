@@ -1,11 +1,11 @@
 
-import { resources } from '@/lib/data';
+import { getResources } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResourceList } from '@/components/ResourceList';
 import { Mic } from 'lucide-react';
 
 export default function ChantsPage() {
-  const chantResources = resources.filter(r => r.category === 'chants');
+  const chantResources = getResources('chants');
 
   return (
     <div className="container mx-auto px-4 py-8">

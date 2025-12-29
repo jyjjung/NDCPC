@@ -1,11 +1,11 @@
 
-import { resources } from '@/lib/data';
+import { getResources } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResourceList } from '@/components/ResourceList';
 import { Megaphone } from 'lucide-react';
 
 export default function AnnouncementsPage() {
-  const announcementResources = resources.filter(r => r.category === 'announcements');
+  const announcementResources = getResources('announcements');
 
   return (
     <div className="container mx-auto px-4 py-8">

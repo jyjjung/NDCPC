@@ -26,8 +26,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { addResource } from "@/lib/data";
 
-const resourceCategories: Exclude<ResourceCategory, 'schedules' | 'announcements'>[] = ['chants', 'songs'];
+const resourceCategories: Exclude<ResourceCategory, 'schedules' | 'announcements'>[] = ['chants', 'songs', 'videos'];
 
 const formSchema = z.object({
   url: z.string().url("Please enter a valid YouTube URL.").refine(
@@ -74,9 +75,7 @@ export function AddResourceForm() {
         category: values.category,
       };
 
-      // In a real app, this would be an API call to save to a database.
-      // For now, we'll just log it and show a success message.
-      console.log("New resource added:", newResource);
+      addResource(newResource);
 
       toast({
         title: "Success!",
@@ -84,6 +83,9 @@ export function AddResourceForm() {
       });
       
       form.reset({url: '', category: undefined});
+      
+      // Refresh the current route to show the new resource
+      router.refresh();
       router.push(`/${newResource.category}`);
 
     } catch (error: any) {
@@ -100,8 +102,8 @@ export function AddResourceForm() {
   return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-2xl font-headline">Add a Song or Chant</CardTitle>
-          <CardDescription>Submit a YouTube URL for a new resource. It will be added to the library automatically.</CardDescription>
+          <CardTitle className="text-2xl font-headline">Add a Resource</CardTitle>
+          <CardDescription>Submit a YouTube URL for a new song, chant, or video. It will be added to the library automatically.</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>

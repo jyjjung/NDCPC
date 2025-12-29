@@ -17,6 +17,7 @@ const categoryLabels: Record<ResourceCategory, string> = {
   songs: "songs",
   schedules: "schedules",
   announcements: "announcements",
+  videos: "videos",
 };
 
 export function ResourceList({ resources, category }: ResourceListProps) {

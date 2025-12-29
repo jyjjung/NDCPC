@@ -1,5 +1,5 @@
 
-import { resources } from "@/lib/data";
+import { getResources } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft } from "lucide-react";
@@ -13,7 +13,7 @@ function getYouTubeVideoId(url: string) {
 }
 
 export default function ResourcePage({ params }: { params: { id: string } }) {
-  const resource = resources.find((res) => res.id === params.id);
+  const resource = getResources().find((res) => res.id === params.id);
 
   if (!resource) {
     notFound();
@@ -25,7 +25,7 @@ export default function ResourcePage({ params }: { params: { id: string } }) {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-4">
         <Button asChild variant="outline">
-          <Link href="/" className="gap-2">
+          <Link href={`/${resource.category}`} className="gap-2">
             <ArrowLeft />
             Back to Resources
           </Link>
