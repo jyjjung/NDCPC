@@ -2,9 +2,9 @@
 
 import * as React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Resource, ResourceCategory } from "@/lib/types";
-import { Mic, Music, CalendarDays, Megaphone, Video, ArrowUpRight } from "lucide-react";
+import { Mic, Music, CalendarDays, Megaphone, Video, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 interface ResourceTabsProps {
@@ -40,11 +40,11 @@ export function ResourceTabs({ resources }: ResourceTabsProps) {
               <div className="grid grid-cols-1 gap-4 pt-4 md:grid-cols-2 lg:grid-cols-3">
                 {categoryResources.map((resource) => (
                   <Card key={resource.id} className="transition-all hover:shadow-md hover:-translate-y-1">
-                     <Link href={resource.url} target="_blank" rel="noopener noreferrer" className="block">
+                     <Link href={`/resources/${resource.id}`} className="block">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between">
                           <p className="font-semibold">{resource.title}</p>
-                          <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
+                          <ArrowRight className="h-5 w-5 text-muted-foreground" />
                         </div>
                       </CardContent>
                     </Link>

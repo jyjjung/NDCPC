@@ -1,15 +1,15 @@
 import type { Resource, RosterMember } from './types';
 
 export const resources: Resource[] = [
-  { id: 'song-1', title: 'Jesus Loves Me', url: '#', category: 'songs' },
-  { id: 'song-2', title: 'This Little Light of Mine', url: '#', category: 'songs' },
-  { id: 'song-3', title: 'Father Abraham', url: '#', category: 'songs' },
-  { id: 'chant-1', title: 'We will, we will, praise you!', url: '#', category: 'chants' },
-  { id: 'schedule-1', title: 'July 2024 Sunday Schedule', url: '#', category: 'schedules' },
-  { id: 'announce-1', title: 'Summer Picnic Day', url: '#', category: 'announcements' },
-  { id: 'announce-2', title: 'Volunteer Sign-up', url: '#', category: 'announcements' },
-  { id: 'video-1', title: 'The Story of Noah\'s Ark', url: '#', category: 'videos' },
-  { id: 'video-2', title: 'David and Goliath Animation', url: '#', category: 'videos' },
+  { id: 'song-1', title: 'Jesus Loves Me', url: 'https://www.youtube.com/watch?v=5zSZnz3pkoY', category: 'songs' },
+  { id: 'song-2', title: 'This Little Light of Mine', url: 'https://www.youtube.com/watch?v=cKkbIZtqhyQ', category: 'songs' },
+  { id: 'song-3', title: 'Father Abraham', url: 'https://www.youtube.com/watch?v=v_j2i3B1-A4', category: 'songs' },
+  { id: 'chant-1', title: 'We will, we will, praise you!', url: 'https://example.com/chant1', category: 'chants' },
+  { id: 'schedule-1', title: 'July 2024 Sunday Schedule', url: '/july_2024_schedule.pdf', category: 'schedules' },
+  { id: 'announce-1', title: 'Summer Picnic Day', url: 'https://example.com/picnic-announcement', category: 'announcements' },
+  { id: 'announce-2', title: 'Volunteer Sign-up', url: 'https://example.com/volunteer-signup', category: 'announcements' },
+  { id: 'video-1', title: 'The Story of Noah\'s Ark', url: 'https://www.youtube.com/watch?v=t1g2-n4d_vA', category: 'videos' },
+  { id: 'video-2', title: 'David and Goliath Animation', url: 'https://www.youtube.com/watch?v=__k_wV9o1fE', category: 'videos' },
 ];
 
 export const roster: RosterMember[] = [
