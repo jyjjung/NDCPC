@@ -138,7 +138,7 @@ export function AddResourceForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
-                        </Trigger>
+                        </SelectTrigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="songs">Song</SelectItem>
