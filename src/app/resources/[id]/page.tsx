@@ -1,4 +1,3 @@
-"use client";
 
 import { resources } from "@/lib/data";
 import { notFound } from "next/navigation";
