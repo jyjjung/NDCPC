@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import 'react-day-picker/dist/style.css';
 import { cn } from '@/lib/utils';
 import { AdminProvider } from '@/context/AdminProvider';
 import { Header } from '@/components/Header';
