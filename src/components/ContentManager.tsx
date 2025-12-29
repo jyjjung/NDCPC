@@ -4,8 +4,8 @@
 import { Resource } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useCollection, useFirestore, useMemoFirebase, deleteDocumentNonBlocking } from "@/firebase";
-import { collection, query, doc, orderBy } from "firebase/firestore";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection, query, doc, orderBy, deleteDoc } from "firebase/firestore";
 import { LoaderCircle, Trash2 } from "lucide-react";
 import {
   AlertDialog,
@@ -32,7 +32,7 @@ export function ContentManager() {
   const handleDelete = (resourceId: string) => {
     if (!firestore) return;
     const resourceRef = doc(firestore, 'resources', resourceId);
-    deleteDocumentNonBlocking(resourceRef);
+    deleteDoc(resourceRef);
   };
 
   if (isLoading) {

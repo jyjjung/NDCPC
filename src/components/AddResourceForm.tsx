@@ -24,8 +24,8 @@ import {
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useFirestore, addDocumentNonBlocking } from "@/firebase";
-import { collection, serverTimestamp } from "firebase/firestore";
+import { useFirestore } from "@/firebase";
+import { collection, serverTimestamp, addDoc } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
@@ -82,7 +82,7 @@ export function AddResourceForm() {
         createdAt: serverTimestamp(),
       };
 
-      await addDocumentNonBlocking(resourcesCollectionRef, newResource);
+      await addDoc(resourcesCollectionRef, newResource);
       
       toast({
         title: "Success!",
@@ -138,7 +138,7 @@ export function AddResourceForm() {
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
-                        </SelectTrigger>
+                        </Trigger>
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="songs">Song</SelectItem>
