@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "Resource": {
@@ -41,35 +42,44 @@
         "createdAt"
       ]
     },
-    "RosterEntry": {
+    "Schedule": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "RosterEntry",
+      "title": "Schedule",
       "type": "object",
-      "description": "Represents a single entry in the weekly volunteer/staff roster.",
+      "description": "Represents a weekly schedule for volunteers.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the RosterEntry entity."
-        },
-        "volunteerName": {
-          "type": "string",
-          "description": "Name of the volunteer or staff member."
-        },
-        "role": {
-          "type": "string",
-          "description": "The role assigned to the volunteer/staff for the week."
+          "description": "Unique identifier for the Schedule."
         },
         "date": {
           "type": "string",
-          "description": "The date for which the roster entry is valid.",
-          "format": "date-time"
+          "format": "date",
+          "description": "The Sunday date for this schedule entry."
+        },
+        "worship": {
+          "type": "string",
+          "description": "Name of the person leading worship."
+        },
+        "offering": {
+          "type": "string",
+          "description": "Name of the person handling the offering."
+        },
+        "sermonChant": {
+          "type": "string",
+          "description": "Name of the person leading the sermon chant."
+        },
+        "activity": {
+          "type": "string",
+          "description": "Name of the person leading the activity."
         }
       },
       "required": [
-        "id",
-        "volunteerName",
-        "role",
-        "date"
+        "date",
+        "worship",
+        "offering",
+        "sermonChant",
+        "activity"
       ]
     },
     "Announcement": {
@@ -129,17 +139,17 @@
         }
       },
       {
-        "path": "/roster_entries/{rosterEntryId}",
+        "path": "/schedules/{scheduleId}",
         "definition": {
-          "entityName": "RosterEntry",
+          "entityName": "Schedule",
           "schema": {
-            "$ref": "#/backend/entities/RosterEntry"
+            "$ref": "#/backend/entities/Schedule"
           },
-          "description": "Stores weekly volunteer/staff roster entries. Includes 'rosterEntryId' as document ID.",
+          "description": "Stores weekly volunteer/staff roster entries. Includes 'scheduleId' as document ID.",
           "params": [
             {
-              "name": "rosterEntryId",
-              "description": "The unique identifier of the roster entry."
+              "name": "scheduleId",
+              "description": "The unique identifier of the schedule entry."
             }
           ]
         }
@@ -161,6 +171,6 @@
         }
       }
     ],
-    "reasoning": "The Firestore data structure has been simplified to use a single top-level 'resources' collection for all resource types (songs, chants, etc.), distinguished by a 'category' field. This flat structure simplifies queries and data management, resolving issues with nested collections. Other collections like 'roster_entries' and 'announcements' remain as top-level collections for clarity and independent access control."
+    "reasoning": "The Firestore data structure has been updated. The 'roster_entries' collection has been replaced with a 'schedules' collection to better reflect its purpose. This new collection uses a 'Schedule' entity that contains all the roles for a given week in a single document."
   }
 }

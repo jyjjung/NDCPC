@@ -14,7 +14,6 @@ const navLinks = [
   { href: "/", label: "Resources" },
   { href: "/schedules", label: "Schedules" },
   { href: "/announcements", label: "Announcements" },
-  { href: "/roster", label: "Roster" },
 ];
 
 export function Header() {
@@ -37,18 +36,6 @@ export function Header() {
           {link.label}
         </Link>
       ))}
-      {isAdmin && (
-        <Link
-          href="/admin"
-          className={cn(
-            "transition-colors hover:text-primary",
-            pathname === "/admin" ? "text-primary font-semibold" : "text-muted-foreground"
-          )}
-          onClick={() => setSheetOpen(false)}
-        >
-          Admin
-        </Link>
-      )}
     </>
   );
 

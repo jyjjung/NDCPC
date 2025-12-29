@@ -1,8 +1,8 @@
 
 'use client';
-import { ResourceList } from '@/components/ResourceList';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { CalendarDays } from 'lucide-react';
+import { ScheduleManager } from "@/components/ScheduleManager";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CalendarDays } from "lucide-react";
 
 export default function SchedulesPage() {
   return (
@@ -13,11 +13,14 @@ export default function SchedulesPage() {
             <div className="grid h-12 w-12 place-items-center rounded-lg bg-primary/10">
               <CalendarDays className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="font-headline text-3xl">Schedules</CardTitle>
+            <div>
+              <CardTitle className="font-headline text-3xl">Weekly Schedules</CardTitle>
+              <CardDescription>Volunteer and staff schedule for Sunday service.</CardDescription>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
-          <ResourceList category="schedules" />
+          <ScheduleManager />
         </CardContent>
       </Card>
     </div>

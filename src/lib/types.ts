@@ -6,12 +6,14 @@ export type Resource = {
   title: string;
   url: string;
   category: ResourceCategory;
-  categoryId?: string;
+  createdAt: any; // Firestore Timestamp
 };
 
-export type RosterMember = {
+export type Schedule = {
   id: string;
-  name: string;
-  role: string;
-  week: string;
+  date: any; // Firestore Timestamp or Date
+  worship: string;
+  offering: string;
+  sermonChant: string;
+  activity: string;
 };
