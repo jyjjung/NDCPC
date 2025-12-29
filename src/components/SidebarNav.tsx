@@ -3,13 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Library, CalendarDays, Megaphone } from 'lucide-react';
+import { Library, CalendarDays, Megaphone, Video } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const navLinks = [
   { href: '/', label: 'Announcements', icon: Megaphone },
   { href: '/resources', label: 'Resources', icon: Library },
   { href: '/schedules', label: 'Schedules', icon: CalendarDays },
+  { href: '/videos', label: 'Videos', icon: Video },
 ];
 
 interface SidebarNavProps {
@@ -19,7 +20,7 @@ interface SidebarNavProps {
 export function SidebarNav({ onLinkClick }: SidebarNavProps) {
   const pathname = usePathname();
 
-  const isAdminPath = (href: string) => {
+  const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
     return pathname.startsWith(href);
   };
@@ -33,7 +34,7 @@ export function SidebarNav({ onLinkClick }: SidebarNavProps) {
           className={cn(
             'flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary',
             {
-              'bg-muted text-primary': isAdminPath(link.href),
+              'bg-muted text-primary': isActive(link.href),
             }
           )}
           onClick={onLinkClick}

@@ -4,12 +4,10 @@
 import { LoginForm } from "@/components/LoginForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AdminProvider } from "@/context/AdminProvider";
-import { FirebaseClientProvider } from "@/firebase";
 import { Lock } from "lucide-react";
 
 export default function AdminLoginPage() {
   return (
-    <FirebaseClientProvider>
         <AdminProvider>
             <div className="flex min-h-screen items-center justify-center bg-gray-100 dark:bg-gray-900 py-12">
             <div className="w-full max-w-sm px-4">
@@ -28,6 +26,5 @@ export default function AdminLoginPage() {
             </div>
             </div>
       </AdminProvider>
-    </FirebaseClientProvider>
   );
 }

@@ -7,6 +7,7 @@ export type Resource = {
   url: string;
   category: ResourceCategory;
   createdAt: any; // Firestore Timestamp
+  description?: string;
 };
 
 export type Schedule = {
