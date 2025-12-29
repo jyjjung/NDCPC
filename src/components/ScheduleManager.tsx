@@ -15,7 +15,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScheduleForm } from './ScheduleForm';
-import { LoaderCircle, Plus, Trash2, Edit, Users, Calendar, User, Gift, MicVocal, ToyBrick } from 'lucide-react';
+import { LoaderCircle, Plus, Trash2, Edit, Users, Calendar, User, Gift, MicVocal, ToyBrick, BookOpen } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -69,7 +69,8 @@ export function ScheduleManager() {
   const scheduleRoles = [
     { key: 'worship', label: 'Worship', icon: Calendar },
     { key: 'offering', label: 'Offering', icon: Gift },
-    { key: 'sermonChant', label: 'Sermon Chant', icon: MicVocal },
+    { key: 'sermon', label: 'Sermon', icon: BookOpen },
+    { key: 'chant', label: 'Chant', icon: MicVocal },
     { key: 'activity', label: 'Activity', icon: ToyBrick },
   ];
 

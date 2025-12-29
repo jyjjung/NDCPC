@@ -15,7 +15,8 @@ export type Schedule = {
   date: any; // Firestore Timestamp or Date
   worship: string;
   offering: string;
-  sermonChant: string;
+  sermon: string;
+  chant: string;
   activity: string;
 };
 

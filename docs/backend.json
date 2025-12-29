@@ -65,9 +65,13 @@
           "type": "string",
           "description": "Name of the person handling the offering."
         },
-        "sermonChant": {
+        "sermon": {
           "type": "string",
-          "description": "Name of the person leading the sermon chant."
+          "description": "Name of the person leading the sermon."
+        },
+        "chant": {
+          "type": "string",
+          "description": "Name of the person leading the chant."
         },
         "activity": {
           "type": "string",
@@ -78,7 +82,8 @@
         "date",
         "worship",
         "offering",
-        "sermonChant",
+        "sermon",
+        "chant",
         "activity"
       ]
     },

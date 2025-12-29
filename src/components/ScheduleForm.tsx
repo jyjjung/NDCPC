@@ -27,7 +27,8 @@ const formSchema = z.object({
   }),
   worship: z.string().min(1, 'Worship leader name is required.'),
   offering: z.string().min(1, 'Offering person name is required.'),
-  sermonChant: z.string().min(1, 'Sermon chant leader is required.'),
+  sermon: z.string().min(1, 'Sermon leader is required.'),
+  chant: z.string().min(1, 'Chant leader is required.'),
   activity: z.string().min(1, 'Activity leader is required.'),
 });
 
@@ -77,7 +78,8 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
       date: defaultSunday.toISOString(),
       worship: '',
       offering: '',
-      sermonChant: '',
+      sermon: '',
+      chant: '',
       activity: '',
     },
   });
@@ -93,7 +95,8 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
             date: defaultSunday.toISOString(),
             worship: '',
             offering: '',
-            sermonChant: '',
+            sermon: '',
+            chant: '',
             activity: '',
         })
     }
@@ -190,7 +193,8 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
         
         {renderSelectField("worship", "Worship")}
         {renderSelectField("offering", "Offering")}
-        {renderSelectField("sermonChant", "Sermon Chant")}
+        {renderSelectField("sermon", "Sermon")}
+        {renderSelectField("chant", "Chant")}
         {renderSelectField("activity", "Activity")}
 
         <Button type="submit" className="w-full">
