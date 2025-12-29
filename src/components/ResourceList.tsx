@@ -9,14 +9,15 @@ import Link from "next/link";
 
 interface ResourceListProps {
   resources: Resource[];
-  category: Omit<ResourceCategory, 'videos'>;
+  category: ResourceCategory;
 }
 
-const categoryLabels: Record<Omit<ResourceCategory, 'videos'>, string> = {
+const categoryLabels: Record<ResourceCategory, string> = {
   chants: "chants",
   songs: "songs",
   schedules: "schedules",
   announcements: "announcements",
+  videos: "videos",
 };
 
 export function ResourceList({ resources, category }: ResourceListProps) {

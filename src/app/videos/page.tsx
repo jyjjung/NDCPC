@@ -1,11 +1,11 @@
 
-import { resources } from '@/lib/data';
+import { getResources } from '@/lib/data';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ResourceList } from '@/components/ResourceList';
 import { Video } from 'lucide-react';
 
 export default function VideosPage() {
-  const videoResources = resources.filter(r => r.category === 'videos');
+  const videoResources = getResources('videos');
 
   return (
     <div className="container mx-auto px-4 py-8">

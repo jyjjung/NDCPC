@@ -13,7 +13,7 @@ let resources: Resource[] = [
   { id: 'announce-2', title: 'Volunteer Sign-up', url: 'https://example.com/volunteer-signup', category: 'announcements' },
 ];
 
-export const getResources = (category?: Omit<ResourceCategory, 'videos'>) => {
+export const getResources = (category?: ResourceCategory) => {
   if (category) {
     return resources.filter(r => r.category === category);
   }
