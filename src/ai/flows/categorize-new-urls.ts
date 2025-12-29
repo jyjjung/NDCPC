@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -31,7 +32,7 @@ const categorizeUrlPrompt = ai.definePrompt({
   output: {schema: CategorizeUrlOutputSchema},
   prompt: `You are an expert in categorizing URLs for a preschooler's church.
   Given the following URL, suggest a category for it.  The category should be one of:
-  chants, songs, schedules, announcements, videos.
+  chants, songs.
 
   URL: {{{url}}}
   Category:`,
