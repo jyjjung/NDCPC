@@ -47,14 +47,6 @@ export function UnreadCountsProvider({ children }: { children: ReactNode }) {
     setAnnouncementsLastRead(getLastReadAt(READ_TRACKING_KEYS.announcements, uid));
   }, [uid]);
 
-  useEffect(() => {
-    if (!uid || announcementsLastRead !== 0 || !announcements?.length) return;
-
-    const readAt = getLatestAnnouncementReadAt(announcements);
-    setLastReadAt(READ_TRACKING_KEYS.announcements, uid, readAt);
-    setAnnouncementsLastRead(readAt);
-  }, [uid, announcements, announcementsLastRead]);
-
   const chatQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(
@@ -71,6 +63,14 @@ export function UnreadCountsProvider({ children }: { children: ReactNode }) {
 
   const { data: chatMessages } = useCollection<ChatMessage>(chatQuery);
   const { data: announcements } = useCollection<Announcement>(announcementsQuery);
+
+  useEffect(() => {
+    if (!uid || announcementsLastRead !== 0 || !announcements?.length) return;
+
+    const readAt = getLatestAnnouncementReadAt(announcements);
+    setLastReadAt(READ_TRACKING_KEYS.announcements, uid, readAt);
+    setAnnouncementsLastRead(readAt);
+  }, [uid, announcements, announcementsLastRead]);
 
   useEffect(() => {
     if (!uid || !pathname.startsWith('/announcements')) return;
