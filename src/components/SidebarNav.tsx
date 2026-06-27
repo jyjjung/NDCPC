@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { navLinks } from '@/lib/navigation';
 import { useTranslation } from '@/context/LocaleProvider';
 import { useAuth } from '@/context/AuthProvider';
+import { useUnreadCounts } from '@/context/UnreadCountsProvider';
+import { Badge } from '@/components/ui/badge';
 
 const icons = {
   '/': LayoutDashboard,
@@ -40,8 +42,16 @@ export function SidebarNav({ onLinkClick }: SidebarNavProps) {
   const pathname = usePathname();
   const { t } = useTranslation();
   const { isAdmin } = useAuth();
+  const { chatUnread, announcementsUnread } = useUnreadCounts();
 
   const links = navLinks.filter((link) => link.href !== '/admin' || isAdmin);
+
+  const badgeCounts: Partial<Record<string, number>> = {
+    '/chat': chatUnread,
+    '/announcements': announcementsUnread,
+  };
+
+  const formatBadgeCount = (count: number) => (count > 99 ? '99+' : String(count));
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -55,6 +65,7 @@ export function SidebarNav({ onLinkClick }: SidebarNavProps) {
       {links.map((link) => {
         const Icon = icons[link.href];
         const active = isActive(link.href);
+        const badgeCount = badgeCounts[link.href] ?? 0;
 
         return (
           <Link
@@ -69,7 +80,18 @@ export function SidebarNav({ onLinkClick }: SidebarNavProps) {
             onClick={onLinkClick}
           >
             <Icon className="h-4 w-4 shrink-0" aria-hidden />
-            {t(link.labelKey)}
+            <span className="flex min-w-0 flex-1 items-center justify-between gap-2">
+              <span className="truncate">{t(link.labelKey)}</span>
+              {badgeCount > 0 ? (
+                <Badge
+                  variant="default"
+                  className="h-5 min-w-5 shrink-0 justify-center rounded-full px-1.5 text-[10px] leading-none"
+                  aria-label={`${formatBadgeCount(badgeCount)} unread`}
+                >
+                  {formatBadgeCount(badgeCount)}
+                </Badge>
+              ) : null}
+            </span>
           </Link>
         );
       })}
