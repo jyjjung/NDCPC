@@ -1,0 +1,54 @@
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function isApproved() {
+      return isSignedIn() && userDoc().data.approved == true;
+    }
+
+    function isAdmin() {
+      return isApproved() && userDoc().data.role == 'admin';
+    }
+
+    function isBootstrapAdmin() {
+      return isAdmin() && userDoc().data.email == 'yejoon7154@gmail.com';
+    }
+
+    function roleChanged() {
+      return request.resource.data.role != resource.data.role;
+    }
+
+    function approvalChanged() {
+      return request.resource.data.approved != resource.data.approved;
+    }
+
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isBootstrapAdmin()
+        || (isAdmin() && !roleChanged())
+        || (isSignedIn() && request.auth.uid == userId && !roleChanged() && !approvalChanged());
+      allow delete: if isBootstrapAdmin();
+    }
+
+    match /photos/{photoId} {
+      allow read: if isApproved();
+      allow create: if isApproved();
+      allow update, delete: if isApproved() && (isAdmin() || resource.data.uploadedBy == request.auth.uid);
+    }
+
+    match /{collection}/{document=**} {
+      allow read: if isApproved();
+      allow write: if isAdmin();
+    }
+  }
+}
