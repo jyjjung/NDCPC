@@ -55,28 +55,44 @@ export function PhotoGallery() {
     cacheKey: DATA_CACHE_KEYS.photos,
   });
 
-  const handleUpload = async (file: File) => {
-    if (!firestore || !storage || !user || !profile) return;
+  const handleUpload = async (files: File[]) => {
+    if (!firestore || !storage || !user || !profile || files.length === 0) return;
+
+    const imageFiles = files.filter((file) => file.type.startsWith('image/'));
+    if (imageFiles.length === 0) return;
 
     setIsUploading(true);
     try {
-      const storagePath = `photos/${user.uid}/${Date.now()}-${file.name}`;
-      const storageRef = ref(storage, storagePath);
-      await uploadBytes(storageRef, file);
-      const downloadUrl = await getDownloadURL(storageRef);
+      const uploadResults = await Promise.all(
+        imageFiles.map(async (file, index) => {
+          const storagePath = `photos/${user.uid}/${Date.now()}-${index}-${file.name}`;
+          const storageRef = ref(storage, storagePath);
+          await uploadBytes(storageRef, file);
+          const downloadUrl = await getDownloadURL(storageRef);
 
-      const docRef = await addDoc(collection(firestore, 'photos'), {
-        storagePath,
-        downloadUrl,
-        uploadedBy: user.uid,
-        uploadedByName: profile.displayName,
-        caption: '',
-        createdAt: serverTimestamp(),
-      });
+          const docRef = await addDoc(collection(firestore, 'photos'), {
+            storagePath,
+            downloadUrl,
+            uploadedBy: user.uid,
+            uploadedByName: profile.displayName,
+            caption: '',
+            createdAt: serverTimestamp(),
+          });
+
+          return { file, photoId: docRef.id };
+        })
+      );
 
       if (fileInputRef.current) fileInputRef.current.value = '';
-      setCaptionDialog({ photoId: docRef.id, caption: '' });
-      toast({ title: t('photos.uploaded') });
+
+      if (uploadResults.length === 1) {
+        setCaptionDialog({ photoId: uploadResults[0]!.photoId, caption: '' });
+        toast({ title: t('photos.uploaded') });
+      } else {
+        toast({
+          title: t('photos.uploadedMultiple', { count: uploadResults.length }),
+        });
+      }
     } catch (error) {
       console.error(error);
       toast({ variant: 'destructive', title: t('toast.couldntSave') });
@@ -132,10 +148,11 @@ export function PhotoGallery() {
             ref={fileInputRef}
             type="file"
             accept="image/*"
+            multiple
             className="hidden"
             onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) void handleUpload(file);
+              const files = Array.from(e.target.files ?? []);
+              if (files.length) void handleUpload(files);
             }}
           />
           <Button
