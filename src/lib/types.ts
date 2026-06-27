@@ -36,7 +36,13 @@ export type UserProfile = {
   displayName: string;
   approved: boolean;
   role: UserRole;
+  photoURL?: string;
+  notificationPrefs?: NotificationPrefs;
   createdAt?: unknown;
+};
+
+export type NotificationPrefs = {
+  chat?: boolean;
 };
 
 export type Photo = {
@@ -47,6 +53,23 @@ export type Photo = {
   uploadedByName: string;
   createdAt?: unknown;
   caption?: string;
+};
+
+export type ChatReplyTo = {
+  messageId: string;
+  authorName: string;
+  text: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  text: string;
+  authorUid: string;
+  authorName: string;
+  createdAt?: { seconds?: number; toDate?: () => Date };
+  replyTo?: ChatReplyTo;
+  reactions?: Record<string, string[]>;
+  seenBy?: Record<string, { name?: string; at?: unknown }>;
 };
 
 export type Announcement = {

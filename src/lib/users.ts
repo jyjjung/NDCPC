@@ -38,6 +38,7 @@ export async function ensureUserProfile(
       displayName: resolvedName,
       approved: isBootstrapAdmin,
       role: isBootstrapAdmin ? 'admin' : 'member',
+      notificationPrefs: { chat: true },
       createdAt: serverTimestamp(),
     };
     await setDoc(userRef, profile);

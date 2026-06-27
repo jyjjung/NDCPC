@@ -21,13 +21,21 @@ export function Logo({ size = 'md', className, priority = false }: LogoProps) {
   const dimension = sizes[size];
 
   return (
-    <Image
-      src="/icons/icon-192.png"
-      alt={t('app.logoAlt')}
-      width={dimension}
-      height={dimension}
-      priority={priority}
-      className={cn('shrink-0 rounded-lg object-contain', className)}
-    />
+    <span
+      className={cn(
+        'inline-flex shrink-0 items-center justify-center rounded-lg bg-background',
+        className
+      )}
+      style={{ width: dimension, height: dimension }}
+    >
+      <Image
+        src="/icons/icon-192.png"
+        alt={t('app.logoAlt')}
+        width={Math.round(dimension * 0.82)}
+        height={Math.round(dimension * 0.82)}
+        priority={priority}
+        className="object-contain"
+      />
+    </span>
   );
 }

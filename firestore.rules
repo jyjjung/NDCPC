@@ -43,7 +43,45 @@ service cloud.firestore {
     match /photos/{photoId} {
       allow read: if isApproved();
       allow create: if isApproved();
-      allow update, delete: if isApproved() && (isAdmin() || resource.data.uploadedBy == request.auth.uid);
+      allow update: if isApproved() && resource.data.uploadedBy == request.auth.uid;
+      allow delete: if isApproved() && resource.data.uploadedBy == request.auth.uid;
+    }
+
+    match /chatMessages/{messageId} {
+      allow read: if isApproved();
+
+      function chatCoreUnchanged() {
+        return request.resource.data.authorUid == resource.data.authorUid
+          && request.resource.data.text == resource.data.text
+          && request.resource.data.authorName == resource.data.authorName
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.get('replyTo', null) == resource.data.get('replyTo', null);
+      }
+
+      allow create: if isApproved()
+        && request.resource.data.authorUid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 2000
+        && request.resource.data.authorName is string
+        && (!('replyTo' in request.resource.data) || (
+          request.resource.data.replyTo is map
+          && request.resource.data.replyTo.messageId is string
+          && request.resource.data.replyTo.authorName is string
+          && request.resource.data.replyTo.text is string
+          && request.resource.data.replyTo.text.size() <= 200
+        ));
+
+      allow update: if isApproved()
+        && chatCoreUnchanged()
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['reactions', 'seenBy']);
+
+      allow delete: if isApproved() && resource.data.authorUid == request.auth.uid;
+    }
+
+    match /users/{userId}/fcmTokens/{tokenId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
     match /{collection}/{document=**} {

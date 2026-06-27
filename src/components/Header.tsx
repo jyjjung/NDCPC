@@ -12,6 +12,7 @@ import { SidebarNav } from './SidebarNav';
 import { getNavItem } from '@/lib/navigation';
 import { Logo } from './Logo';
 import { AppearanceControls } from './AppearanceControls';
+import { UserMenu } from './UserMenu';
 import { Menu } from 'lucide-react';
 
 export function Header() {
@@ -31,7 +32,7 @@ export function Header() {
               <span className="sr-only">{t('common.menu')}</span>
             </Button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 border-r-0 p-0">
+          <SheetContent side="left" className="flex w-64 flex-col border-r-0 p-0">
             <div className="px-5 py-4">
               <Link
                 href="/"
@@ -42,8 +43,11 @@ export function Header() {
                 <span className="font-headline text-sm font-semibold">{t('app.name')}</span>
               </Link>
             </div>
-            <div className="px-3 py-4">
+            <div className="flex-1 overflow-y-auto px-3 py-4">
               <SidebarNav onLinkClick={() => setSheetOpen(false)} />
+            </div>
+            <div className="mt-auto border-t border-border/40 px-3 py-4">
+              <UserMenu onLinkClick={() => setSheetOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>

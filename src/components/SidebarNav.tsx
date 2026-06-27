@@ -10,6 +10,7 @@ import {
   Library,
   ListMusic,
   Megaphone,
+  MessageCircle,
   Shield,
   Users,
 } from 'lucide-react';
@@ -22,6 +23,7 @@ const icons = {
   '/': LayoutDashboard,
   '/announcements': Megaphone,
   '/prayer': Heart,
+  '/chat': MessageCircle,
   '/photos': ImageIcon,
   '/setlist': ListMusic,
   '/resources': Library,

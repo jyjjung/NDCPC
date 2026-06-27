@@ -4,6 +4,7 @@ export const navLinks = [
   { href: '/', labelKey: 'nav.home' as TranslationKey },
   { href: '/announcements', labelKey: 'nav.announcements' as TranslationKey },
   { href: '/prayer', labelKey: 'nav.prayer' as TranslationKey },
+  { href: '/chat', labelKey: 'nav.chat' as TranslationKey },
   { href: '/photos', labelKey: 'nav.photos' as TranslationKey },
   { href: '/setlist', labelKey: 'nav.setlist' as TranslationKey },
   { href: '/resources', labelKey: 'nav.resources' as TranslationKey },
@@ -15,6 +16,9 @@ export const navLinks = [
 export function getNavItem(pathname: string) {
   if (pathname === '/') {
     return navLinks[0];
+  }
+  if (pathname.startsWith('/settings')) {
+    return { href: '/settings', labelKey: 'nav.settings' as TranslationKey };
   }
   return navLinks.find((link) => pathname.startsWith(link.href)) ?? navLinks[0];
 }

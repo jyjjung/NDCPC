@@ -26,11 +26,15 @@ export function initializeFirebase() {
 }
 
 export function getSdks(firebaseApp: FirebaseApp) {
+  const bucket = firebaseConfig.storageBucket
+    ? `gs://${firebaseConfig.storageBucket}`
+    : undefined;
+
   return {
     firebaseApp,
     auth: getAuth(firebaseApp),
     firestore: getFirestore(firebaseApp),
-    storage: getStorage(firebaseApp),
+    storage: bucket ? getStorage(firebaseApp, bucket) : getStorage(firebaseApp),
   };
 }
 

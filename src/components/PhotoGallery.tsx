@@ -8,13 +8,14 @@ import { Photo } from '@/lib/types';
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
 } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -42,6 +43,7 @@ export function PhotoGallery() {
     null
   );
   const [isSavingCaption, setIsSavingCaption] = useState(false);
+  const [deletingPhotoId, setDeletingPhotoId] = useState<string | null>(null);
 
   const photosQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -97,6 +99,24 @@ export function PhotoGallery() {
     }
   };
 
+  const handleDelete = async (photo: Photo) => {
+    if (!firestore || !storage || !user || photo.uploadedBy !== user.uid) return;
+
+    setDeletingPhotoId(photo.id);
+    try {
+      if (photo.storagePath) {
+        await deleteObject(ref(storage, photo.storagePath));
+      }
+      await deleteDoc(doc(firestore, 'photos', photo.id));
+      toast({ title: t('photos.deleted') });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: t('toast.couldntDelete') });
+    } finally {
+      setDeletingPhotoId(null);
+    }
+  };
+
   if (isLoading) {
     return <LoadingState />;
   }
@@ -136,6 +156,9 @@ export function PhotoGallery() {
                 url={photo.downloadUrl}
                 alt={photo.caption || photo.uploadedByName}
                 filename={`${photo.caption || photo.id}.jpg`}
+                canDelete={photo.uploadedBy === user?.uid}
+                onDelete={() => void handleDelete(photo)}
+                isDeleting={deletingPhotoId === photo.id}
               />
             ))}
           </div>

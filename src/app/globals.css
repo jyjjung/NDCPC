@@ -68,3 +68,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+@layer components {
+  .chat-bubble {
+    border-radius: 1.125rem;
+  }
+
+  .chat-bubble-own-tail {
+    border-bottom-right-radius: 0.375rem;
+  }
+
+  .chat-bubble-other-tail {
+    border-bottom-left-radius: 0.375rem;
+  }
+}

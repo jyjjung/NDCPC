@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Download } from 'lucide-react';
+import { Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { downloadPhoto, getCachedPhotoBlob } from '@/lib/photo-cache';
 import { useTranslation } from '@/context/LocaleProvider';
@@ -11,9 +11,19 @@ type CachedPhotoProps = {
   url: string;
   alt: string;
   filename: string;
+  canDelete?: boolean;
+  onDelete?: () => void;
+  isDeleting?: boolean;
 };
 
-export function CachedPhoto({ url, alt, filename }: CachedPhotoProps) {
+export function CachedPhoto({
+  url,
+  alt,
+  filename,
+  canDelete = false,
+  onDelete,
+  isDeleting = false,
+}: CachedPhotoProps) {
   const { t } = useTranslation();
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
@@ -48,15 +58,27 @@ export function CachedPhoto({ url, alt, filename }: CachedPhotoProps) {
       </div>
       <div className="flex items-center justify-between gap-3">
         <p className="min-w-0 truncate text-sm">{alt}</p>
-        <Button
-          variant="outline"
-          size="sm"
-          className="shrink-0"
-          onClick={() => downloadPhoto(url, filename)}
-        >
-          <Download className="mr-1.5 h-4 w-4" />
-          {t('photos.download')}
-        </Button>
+        <div className="flex shrink-0 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => downloadPhoto(url, filename)}
+          >
+            <Download className="mr-1.5 h-4 w-4" />
+            {t('photos.download')}
+          </Button>
+          {canDelete && onDelete ? (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={isDeleting}
+              onClick={onDelete}
+              aria-label={t('photos.delete')}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          ) : null}
+        </div>
       </div>
     </div>
   );
