@@ -31,6 +31,7 @@ import {
   getReadReceiptNamesByMessageId,
   shouldShowDateSeparator,
 } from '@/lib/chat-message-meta';
+import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 
 export function ChatRoom() {
   const { user, profile } = useAuth();
@@ -40,9 +41,13 @@ export function ChatRoom() {
   const [text, setText] = useState('');
   const [isSending, setIsSending] = useState(false);
   const [replyTo, setReplyTo] = useState<ChatMessage | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const footerRef = useRef<HTMLDivElement>(null);
+  const stickToBottomRef = useRef(true);
   const inputRef = useRef<HTMLInputElement>(null);
   const markedSeenRef = useRef<Set<string>>(new Set());
+  const [footerHeight, setFooterHeight] = useState(0);
+  const [isMobileComposer, setIsMobileComposer] = useState(false);
 
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -53,10 +58,47 @@ export function ChatRoom() {
     );
   }, [firestore]);
 
-  const { data: messages, isLoading } = useCollection<ChatMessage>(messagesQuery);
+  const { data: messages, isLoading } = useCollection<ChatMessage>(messagesQuery, {
+    cacheKey: DATA_CACHE_KEYS.chatMessages,
+  });
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const list = listRef.current;
+    if (!list) return;
+
+    const onScroll = () => {
+      const distanceFromBottom = list.scrollHeight - list.scrollTop - list.clientHeight;
+      stickToBottomRef.current = distanceFromBottom < 96;
+    };
+
+    list.addEventListener('scroll', onScroll, { passive: true });
+    return () => list.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 639px)');
+    const update = () => setIsMobileComposer(mediaQuery.matches);
+    update();
+    mediaQuery.addEventListener('change', update);
+    return () => mediaQuery.removeEventListener('change', update);
+  }, []);
+
+  useEffect(() => {
+    const footer = footerRef.current;
+    if (!footer) return;
+
+    const updateHeight = () => setFooterHeight(footer.offsetHeight);
+    updateHeight();
+
+    const observer = new ResizeObserver(updateHeight);
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [replyTo]);
+
+  useEffect(() => {
+    const list = listRef.current;
+    if (!stickToBottomRef.current || !list) return;
+    list.scrollTop = list.scrollHeight;
   }, [messages]);
 
   useEffect(() => {
@@ -115,6 +157,11 @@ export function ChatRoom() {
       });
       setText('');
       setReplyTo(null);
+      stickToBottomRef.current = true;
+      requestAnimationFrame(() => {
+        const list = listRef.current;
+        if (list) list.scrollTop = list.scrollHeight;
+      });
       inputRef.current?.focus();
     } catch (error) {
       console.error(error);
@@ -172,8 +219,10 @@ export function ChatRoom() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-1 items-center justify-center">
-        <LoadingState />
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex flex-1 items-center justify-center">
+          <LoadingState />
+        </div>
       </div>
     );
   }
@@ -184,8 +233,15 @@ export function ChatRoom() {
     : new Map<string, string[]>();
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-background">
-      <div className="flex-1 overflow-y-auto px-2 py-3 sm:px-3">
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-background">
+      <div
+        ref={listRef}
+        style={{
+          paddingBottom:
+            isMobileComposer && footerHeight > 0 ? footerHeight : undefined,
+        }}
+        className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain touch-pan-y px-2 py-3 [-webkit-overflow-scrolling:touch] sm:px-3"
+      >
         {!messages || messages.length === 0 ? (
           <p className="pt-12 text-center text-sm text-muted-foreground">{t('chat.empty')}</p>
         ) : (
@@ -233,10 +289,12 @@ export function ChatRoom() {
             })}
           </div>
         )}
-        <div ref={bottomRef} />
       </div>
 
-      <div className="shrink-0 border-t border-border/40 bg-background">
+      <div
+        ref={footerRef}
+        className="fixed inset-x-0 bottom-0 z-10 shrink-0 touch-none border-t border-border/40 bg-background pb-[env(safe-area-inset-bottom)] sm:static sm:inset-auto sm:z-auto sm:touch-auto sm:pb-0"
+      >
         {replyTo ? (
           <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2">
             <div className="min-w-0 flex-1 border-l-2 border-primary pl-2">

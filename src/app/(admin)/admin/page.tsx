@@ -2,6 +2,7 @@
 
 import { useAuth } from '@/context/AuthProvider';
 import { UserApprovalManager } from '@/components/UserApprovalManager';
+import { MemberManager } from '@/components/MemberManager';
 import { AdminRoleManager } from '@/components/AdminRoleManager';
 import { PageShell } from '@/components/PageShell';
 import { EmptyState } from '@/components/EmptyState';
@@ -29,6 +30,7 @@ export default function AdminPage() {
           </div>
           <UserApprovalManager />
         </section>
+        <MemberManager />
         <AdminRoleManager />
       </div>
     </PageShell>

@@ -22,6 +22,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
+import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 import { ContentFlow, FlowItem } from './ContentFlow';
 import { PrayerTopicForm } from './PrayerTopicForm';
 
@@ -88,7 +89,9 @@ export function PrayerTopicList() {
     return query(collection(firestore, 'prayerTopics'), orderBy('date', 'desc'));
   }, [firestore]);
 
-  const { data: topics, isLoading } = useCollection<PrayerTopic>(topicsQuery);
+  const { data: topics, isLoading } = useCollection<PrayerTopic>(topicsQuery, {
+    cacheKey: DATA_CACHE_KEYS.prayerTopics,
+  });
 
   const handleDelete = async (topicId: string) => {
     if (!firestore) return;

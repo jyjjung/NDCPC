@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { VolunteerForm } from './VolunteerForm';
+import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
 import { ContentFlow, FlowItem } from './ContentFlow';
@@ -32,7 +33,9 @@ export function RosterManager() {
     return query(collection(firestore, 'volunteers'), orderBy('name'));
   }, [firestore]);
 
-  const { data: volunteers, isLoading } = useCollection<Volunteer>(volunteersQuery);
+  const { data: volunteers, isLoading } = useCollection<Volunteer>(volunteersQuery, {
+    cacheKey: DATA_CACHE_KEYS.volunteers,
+  });
 
   const handleDelete = async (volunteer: Volunteer) => {
     if (!firestore) return;

@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { useToast } from '@/hooks/use-toast';
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
+import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 import { AddAnnouncementForm } from './AddAnnouncementForm';
 import { ContentFlow, FlowItem } from './ContentFlow';
 
@@ -38,7 +39,10 @@ export function AnnouncementList() {
     return query(collection(firestore, 'announcements'), orderBy('date', 'desc'));
   }, [firestore]);
 
-  const { data: announcements, isLoading } = useCollection<Announcement>(announcementsQuery);
+  const { data: announcements, isLoading } = useCollection<Announcement>(
+    announcementsQuery,
+    { cacheKey: DATA_CACHE_KEYS.announcements }
+  );
 
   const handleDelete = async (announcementId: string) => {
     if (!firestore) return;

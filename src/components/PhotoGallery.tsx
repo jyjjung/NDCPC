@@ -28,6 +28,7 @@ import {
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
 import { CachedPhoto } from './CachedPhoto';
+import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LocaleProvider';
 
@@ -50,7 +51,9 @@ export function PhotoGallery() {
     return query(collection(firestore, 'photos'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
-  const { data: photos, isLoading } = useCollection<Photo>(photosQuery);
+  const { data: photos, isLoading } = useCollection<Photo>(photosQuery, {
+    cacheKey: DATA_CACHE_KEYS.photos,
+  });
 
   const handleUpload = async (file: File) => {
     if (!firestore || !storage || !user || !profile) return;

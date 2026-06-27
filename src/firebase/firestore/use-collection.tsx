@@ -9,6 +9,7 @@ import {
   QuerySnapshot,
   CollectionReference,
 } from 'firebase/firestore';
+import { readCachedCollection, writeCachedCollection } from '@/lib/data-cache';
 
 export type WithId<T> = T & { id: string };
 
@@ -18,14 +19,31 @@ export interface UseCollectionResult<T> {
   error: FirestoreError | null;
 }
 
+export interface UseCollectionOptions {
+  cacheKey?: string;
+}
+
 export function useCollection<T = any>(
-    memoizedTargetRefOrQuery: (CollectionReference<DocumentData> | Query<DocumentData> | null | undefined)
+  memoizedTargetRefOrQuery:
+    | CollectionReference<DocumentData>
+    | Query<DocumentData>
+    | null
+    | undefined,
+  options?: UseCollectionOptions
 ): UseCollectionResult<T> {
   type ResultItemType = WithId<T>;
   type StateDataType = ResultItemType[] | null;
 
-  const [data, setData] = useState<StateDataType>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const cacheKey = options?.cacheKey;
+
+  const [data, setData] = useState<StateDataType>(() => {
+    if (!cacheKey) return null;
+    return readCachedCollection<ResultItemType>(cacheKey);
+  });
+  const [isLoading, setIsLoading] = useState<boolean>(() => {
+    if (!cacheKey) return true;
+    return readCachedCollection<ResultItemType>(cacheKey) === null;
+  });
   const [error, setError] = useState<FirestoreError | null>(null);
 
   useEffect(() => {
@@ -36,7 +54,18 @@ export function useCollection<T = any>(
       return;
     }
 
-    setIsLoading(true);
+    if (cacheKey) {
+      const cached = readCachedCollection<ResultItemType>(cacheKey);
+      if (cached) {
+        setData(cached);
+        setIsLoading(false);
+      } else {
+        setIsLoading(true);
+      }
+    } else {
+      setIsLoading(true);
+    }
+
     setError(null);
 
     const unsubscribe = onSnapshot(
@@ -49,17 +78,22 @@ export function useCollection<T = any>(
         setData(results);
         setError(null);
         setIsLoading(false);
+        if (cacheKey) {
+          writeCachedCollection(cacheKey, results);
+        }
       },
       (err: FirestoreError) => {
-        console.error("Firestore Error in useCollection:", err);
+        console.error('Firestore Error in useCollection:', err);
         setError(err);
-        setData(null);
+        if (!cacheKey || readCachedCollection<ResultItemType>(cacheKey) === null) {
+          setData(null);
+        }
         setIsLoading(false);
       }
     );
 
     return () => unsubscribe();
-  }, [memoizedTargetRefOrQuery]);
+  }, [memoizedTargetRefOrQuery, cacheKey]);
 
   return { data, isLoading, error };
 }

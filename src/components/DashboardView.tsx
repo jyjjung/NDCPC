@@ -15,6 +15,7 @@ import { LoadingState } from './LoadingState';
 import { ScheduleManager } from './ScheduleManager';
 import { CombinedServiceView } from './CombinedServiceView';
 import { SetlistMedia } from './SetlistMedia';
+import { UpcomingDuties } from './UpcomingDuties';
 import { useWeeklyWorshipFormat } from './WorshipFormatManager';
 import { Button } from './ui/button';
 import {
@@ -81,6 +82,8 @@ export function DashboardView() {
   return (
     <>
       <div className="space-y-10">
+        <UpcomingDuties schedules={schedules} />
+
         <section>
           <p className="mb-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             {t('dashboard.upcoming')}

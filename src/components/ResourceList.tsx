@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LocaleProvider';
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
+import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 
 interface ResourceListProps {
   category: 'songs' | 'chants';
@@ -38,7 +39,9 @@ export function ResourceList({
     return query(collection(firestore, 'resources'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
-  const { data: allResources, isLoading } = useCollection<Resource>(resourcesQuery);
+  const { data: allResources, isLoading } = useCollection<Resource>(resourcesQuery, {
+    cacheKey: DATA_CACHE_KEYS.resources,
+  });
 
   const resources = React.useMemo(() => {
     if (!allResources) return [];

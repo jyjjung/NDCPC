@@ -2,6 +2,7 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   getDoc,
   serverTimestamp,
@@ -114,4 +115,75 @@ export async function approveUser(
 
 export async function setUserRole(firestore: Firestore, uid: string, role: UserRole) {
   await updateDoc(doc(firestore, 'users', uid), { role });
+}
+
+export function getLinkedVolunteer(profile: UserProfile, volunteers: Volunteer[]) {
+  return volunteers.find((volunteer) => volunteer.userId === profile.uid);
+}
+
+export function getUnlinkedVolunteers(volunteers: Volunteer[]) {
+  return volunteers.filter((volunteer) => !volunteer.userId);
+}
+
+export async function updateMemberDisplayName(
+  firestore: Firestore,
+  uid: string,
+  displayName: string,
+  volunteers: Volunteer[]
+) {
+  const trimmed = displayName.trim();
+  if (trimmed.length < 2) {
+    throw new Error('Display name too short');
+  }
+
+  await updateDoc(doc(firestore, 'users', uid), { displayName: trimmed });
+
+  const linkedVolunteer = volunteers.find((volunteer) => volunteer.userId === uid);
+  if (linkedVolunteer) {
+    await updateDoc(doc(firestore, 'volunteers', linkedVolunteer.id), { name: trimmed });
+  }
+}
+
+export async function linkUserToVolunteer(
+  firestore: Firestore,
+  profile: UserProfile,
+  volunteer: Volunteer,
+  volunteers: Volunteer[]
+) {
+  if (volunteer.userId && volunteer.userId !== profile.uid) {
+    throw new Error('Volunteer already linked to another account');
+  }
+
+  const existingLink = volunteers.find(
+    (entry) => entry.userId === profile.uid && entry.id !== volunteer.id
+  );
+  if (existingLink) {
+    await updateDoc(doc(firestore, 'volunteers', existingLink.id), {
+      userId: deleteField(),
+      email: deleteField(),
+    });
+  }
+
+  await updateDoc(doc(firestore, 'volunteers', volunteer.id), {
+    userId: profile.uid,
+    email: profile.email,
+    name: profile.displayName.trim() || volunteer.name,
+  });
+}
+
+export async function unlinkUserFromVolunteer(firestore: Firestore, volunteer: Volunteer) {
+  await updateDoc(doc(firestore, 'volunteers', volunteer.id), {
+    userId: deleteField(),
+    email: deleteField(),
+  });
+}
+
+export async function approveAndLinkUser(
+  firestore: Firestore,
+  profile: UserProfile,
+  volunteer: Volunteer,
+  volunteers: Volunteer[]
+) {
+  await updateDoc(doc(firestore, 'users', profile.uid), { approved: true });
+  await linkUserToVolunteer(firestore, profile, volunteer, volunteers);
 }
