@@ -21,6 +21,16 @@ export function isBootstrapAdminEmail(email: string) {
   return email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
 }
 
+function isPlaceholderDisplayName(displayName: string, email: string) {
+  const trimmed = displayName.trim();
+  if (!trimmed) return true;
+
+  const normalizedEmail = email.toLowerCase();
+  const emailPrefix = normalizedEmail.split('@')[0] ?? '';
+
+  return trimmed === normalizedEmail || trimmed === emailPrefix;
+}
+
 export async function ensureUserProfile(
   firestore: Firestore,
   user: User,
@@ -30,7 +40,10 @@ export async function ensureUserProfile(
   const snapshot = await getDoc(userRef);
   const email = user.email?.toLowerCase() ?? '';
   const isBootstrapAdmin = email === ADMIN_EMAIL.toLowerCase();
-  const resolvedName = displayName?.trim() || user.displayName?.trim() || email.split('@')[0] || 'Member';
+  const trimmedInput = displayName?.trim();
+  const authName = user.displayName?.trim();
+  const resolvedName =
+    trimmedInput || authName || email.split('@')[0] || 'Member';
 
   if (!snapshot.exists()) {
     const profile = {
@@ -50,6 +63,16 @@ export async function ensureUserProfile(
   if (isBootstrapAdmin && (data.role !== 'admin' || !data.approved)) {
     await updateDoc(userRef, { role: 'admin', approved: true });
     return { id: user.uid, ...data, role: 'admin', approved: true };
+  }
+
+  const preferredName = trimmedInput || authName;
+  if (
+    preferredName &&
+    preferredName !== data.displayName &&
+    (trimmedInput || isPlaceholderDisplayName(data.displayName ?? '', email))
+  ) {
+    await updateDoc(userRef, { displayName: preferredName });
+    return { id: user.uid, ...data, displayName: preferredName };
   }
 
   return { id: user.uid, ...data };

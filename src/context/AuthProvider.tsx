@@ -82,9 +82,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback(
     async (email: string, password: string, displayName: string) => {
+      const trimmedName = displayName.trim();
       const credential = await createUserWithEmailAndPassword(auth, email, password);
-      await updateProfile(credential.user, { displayName: displayName.trim() });
-      await ensureUserProfile(firestore, credential.user, displayName.trim());
+      await updateProfile(credential.user, { displayName: trimmedName });
+      await credential.user.reload();
+      await ensureUserProfile(firestore, credential.user, trimmedName);
     },
     [auth, firestore]
   );
