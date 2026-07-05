@@ -6,10 +6,18 @@ type VideoEmbedProps = {
   url: string;
   title: string;
   className?: string;
+  startSeconds?: number;
+  endSeconds?: number;
 };
 
-export function VideoEmbed({ url, title, className }: VideoEmbedProps) {
-  const embedUrl = getVideoEmbedUrl(url);
+export function VideoEmbed({
+  url,
+  title,
+  className,
+  startSeconds,
+  endSeconds,
+}: VideoEmbedProps) {
+  const embedUrl = getVideoEmbedUrl(url, { startSeconds, endSeconds });
 
   return (
     <div className={className ?? 'aspect-video w-full overflow-hidden rounded-md bg-muted/30'}>

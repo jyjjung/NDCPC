@@ -98,7 +98,12 @@ export function ResourceList({
           {trigger}
         </AccordionTrigger>
         <AccordionContent className="pb-5 pt-0">
-          <VideoEmbed url={resource.url} title={resource.title} />
+          <VideoEmbed
+            url={resource.url}
+            title={resource.title}
+            startSeconds={resource.startSeconds}
+            endSeconds={resource.endSeconds}
+          />
         </AccordionContent>
       </AccordionItem>
     );

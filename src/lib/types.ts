@@ -8,6 +8,8 @@ export type Resource = {
   category: ResourceCategory;
   createdAt: any; // Firestore Timestamp
   description?: string;
+  startSeconds?: number;
+  endSeconds?: number;
 };
 
 export type Schedule = {

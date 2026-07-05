@@ -22,7 +22,12 @@ function VideoList({ resources, startIndex = 1 }: { resources: Resource[]; start
             >
               {startIndex + index}. {resource.title}
             </p>
-            <VideoEmbed url={resource.url} title={resource.title} />
+            <VideoEmbed
+              url={resource.url}
+              title={resource.title}
+              startSeconds={resource.startSeconds}
+              endSeconds={resource.endSeconds}
+            />
           </li>
         ))}
     </ol>

@@ -272,6 +272,11 @@ export const translations = {
     'resources.selectItem': 'Select {title}',
     'resources.invalidLink': "That doesn't look like a link",
     'resources.supportedVideoOnly': 'YouTube, Naver TV, or naver.me links only',
+    'resources.youtubeChapter': 'Chapter',
+    'resources.selectChapter': 'Select a chapter',
+    'resources.fullVideo': 'Full video',
+    'resources.loadingChapters': 'Loading chapters…',
+    'resources.chapterHint': 'From: {title}',
 
     'setlist.new': 'New setlist',
     'setlist.edit': 'Edit setlist',
@@ -606,6 +611,11 @@ export const translations = {
     'resources.selectItem': '{title} 선택',
     'resources.invalidLink': '링크 형식이 아니에요',
     'resources.supportedVideoOnly': 'YouTube, 네이버 TV, 또는 naver.me 링크만 가능해요',
+    'resources.youtubeChapter': '챕터',
+    'resources.selectChapter': '챕터 선택',
+    'resources.fullVideo': '전체 영상',
+    'resources.loadingChapters': '챕터 불러오는 중…',
+    'resources.chapterHint': '영상: {title}',
 
     'setlist.new': '새 셋리스트',
     'setlist.edit': '셋리스트 수정',

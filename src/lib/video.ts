@@ -1,5 +1,10 @@
 export type VideoProvider = 'youtube' | 'naver';
 
+export type VideoEmbedOptions = {
+  startSeconds?: number;
+  endSeconds?: number;
+};
+
 export function getYouTubeVideoId(url: string) {
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
   const match = url.match(regExp);
@@ -72,10 +77,20 @@ export function isAllowedVideoInputUrl(url: string) {
   return isSupportedVideoUrl(url) || isNaverMeUrl(url) || isNaverBlogInputUrl(url);
 }
 
-export function getVideoEmbedUrl(url: string) {
+export function getVideoEmbedUrl(url: string, options?: VideoEmbedOptions) {
   const youtubeId = getYouTubeVideoId(url);
   if (youtubeId) {
-    return `https://www.youtube.com/embed/${youtubeId}`;
+    const embedUrl = new URL(`https://www.youtube.com/embed/${youtubeId}`);
+
+    if (options?.startSeconds !== undefined) {
+      embedUrl.searchParams.set('start', String(options.startSeconds));
+    }
+
+    if (options?.endSeconds !== undefined) {
+      embedUrl.searchParams.set('end', String(options.endSeconds));
+    }
+
+    return embedUrl.toString();
   }
 
   const naverId = getNaverVideoId(url);
