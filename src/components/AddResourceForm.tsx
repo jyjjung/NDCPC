@@ -18,7 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 import { useTranslation } from '@/context/LocaleProvider';
-import { isSupportedVideoUrl } from '@/lib/video';
+import { isAllowedVideoInputUrl } from '@/lib/video';
 
 interface AddResourceFormProps {
   initialCategory: 'songs' | 'chants';
@@ -33,7 +33,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
   const formSchema = z.object({
     url: z.string().url(t('resources.invalidLink')).refine(
-      (url) => isSupportedVideoUrl(url),
+      (url) => isAllowedVideoInputUrl(url),
       t('resources.supportedVideoOnly')
     ),
   });

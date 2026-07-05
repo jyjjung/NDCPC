@@ -1,18 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 import { fetchNaverVideoTitle } from '@/lib/naver-metadata';
+import { resolveVideoUrl } from '@/lib/resolve-video-url';
 import { getVideoProvider, isSupportedVideoUrl } from '@/lib/video';
 
 export const dynamic = 'force-dynamic';
-
-async function resolveVideoUrl(url: string) {
-  try {
-    const response = await fetch(url, { method: 'GET', redirect: 'follow' });
-    return response.url || url;
-  } catch {
-    return url;
-  }
-}
 
 export async function GET(request: NextRequest) {
   const rawUrl = request.nextUrl.searchParams.get('url');
@@ -23,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const url = await resolveVideoUrl(rawUrl);
 
-  if (!isSupportedVideoUrl(url)) {
+  if (!isSupportedVideoUrl(url) || getVideoProvider(url) === null) {
     return NextResponse.json({ error: 'Unsupported video URL' }, { status: 400 });
   }
 

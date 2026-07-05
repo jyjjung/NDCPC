@@ -11,6 +11,15 @@ export function getNaverVideoId(url: string) {
   return match?.[1] ?? null;
 }
 
+export function isNaverMeUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname === 'naver.me' || parsed.hostname === 'm.naver.me';
+  } catch {
+    return false;
+  }
+}
+
 export function getNaverLegacyEmbedUrl(url: string) {
   if (!url.includes('serviceapi.nmv.naver.com')) {
     return null;
@@ -48,6 +57,10 @@ export function getVideoProvider(url: string): VideoProvider | null {
 
 export function isSupportedVideoUrl(url: string) {
   return getVideoProvider(url) !== null;
+}
+
+export function isAllowedVideoInputUrl(url: string) {
+  return isSupportedVideoUrl(url) || isNaverMeUrl(url);
 }
 
 export function getVideoEmbedUrl(url: string) {
