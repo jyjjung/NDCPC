@@ -1,4 +1,15 @@
+import { isNaverBlogUrl } from '@/lib/naver-blog';
 import { isSupportedVideoUrl } from '@/lib/video';
+
+const RESOLVE_HEADERS = {
+  'User-Agent':
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+  'Accept-Language': 'ko-KR,ko;q=0.9',
+};
+
+function isResolvableVideoUrl(url: string) {
+  return isSupportedVideoUrl(url) || isNaverBlogUrl(url);
+}
 
 function extractBridgeUrl(url: string) {
   try {
@@ -21,22 +32,20 @@ export async function resolveVideoUrl(input: string) {
     const bridgeTarget = extractBridgeUrl(current);
     if (bridgeTarget) {
       current = bridgeTarget;
-      if (isSupportedVideoUrl(current)) {
+      if (isResolvableVideoUrl(current)) {
         return current;
       }
       continue;
     }
 
-    if (isSupportedVideoUrl(current)) {
+    if (isResolvableVideoUrl(current)) {
       return current;
     }
 
     const response = await fetch(current, {
       method: 'GET',
       redirect: 'manual',
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; NDCPC/1.0)',
-      },
+      headers: RESOLVE_HEADERS,
     });
 
     if ([301, 302, 307, 308].includes(response.status)) {

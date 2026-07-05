@@ -20,6 +20,15 @@ export function isNaverMeUrl(url: string) {
   }
 }
 
+export function isNaverBlogInputUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    return parsed.hostname.includes('blog.naver.com');
+  } catch {
+    return false;
+  }
+}
+
 export function getNaverLegacyEmbedUrl(url: string) {
   if (!url.includes('serviceapi.nmv.naver.com')) {
     return null;
@@ -60,7 +69,7 @@ export function isSupportedVideoUrl(url: string) {
 }
 
 export function isAllowedVideoInputUrl(url: string) {
-  return isSupportedVideoUrl(url) || isNaverMeUrl(url);
+  return isSupportedVideoUrl(url) || isNaverMeUrl(url) || isNaverBlogInputUrl(url);
 }
 
 export function getVideoEmbedUrl(url: string) {

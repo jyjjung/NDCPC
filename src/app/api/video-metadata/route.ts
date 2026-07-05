@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+import { fetchNaverBlogVideoInfo, isNaverBlogUrl } from '@/lib/naver-blog';
 import { fetchNaverVideoTitle } from '@/lib/naver-metadata';
 import { resolveVideoUrl } from '@/lib/resolve-video-url';
 import { getVideoProvider, isSupportedVideoUrl } from '@/lib/video';
@@ -14,6 +15,18 @@ export async function GET(request: NextRequest) {
   }
 
   const url = await resolveVideoUrl(rawUrl);
+
+  if (isNaverBlogUrl(url)) {
+    const blogVideo = await fetchNaverBlogVideoInfo(url);
+    if (!blogVideo) {
+      return NextResponse.json({ error: 'Could not fetch video details' }, { status: 422 });
+    }
+
+    return NextResponse.json({
+      title: blogVideo.title,
+      url: blogVideo.embedUrl,
+    });
+  }
 
   if (!isSupportedVideoUrl(url) || getVideoProvider(url) === null) {
     return NextResponse.json({ error: 'Unsupported video URL' }, { status: 400 });
