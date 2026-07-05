@@ -18,6 +18,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 import { useTranslation } from '@/context/LocaleProvider';
+import { isSupportedVideoUrl } from '@/lib/video';
 
 interface AddResourceFormProps {
   initialCategory: 'songs' | 'chants';
@@ -32,8 +33,8 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
   const formSchema = z.object({
     url: z.string().url(t('resources.invalidLink')).refine(
-      (url) => url.includes('youtube.com/watch') || url.includes('youtu.be'),
-      t('resources.youtubeOnly')
+      (url) => isSupportedVideoUrl(url),
+      t('resources.supportedVideoOnly')
     ),
   });
 
@@ -56,13 +57,13 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
     setIsSubmitting(true);
 
     try {
-      const oembedResponse = await fetch(
-        `https://noembed.com/embed?url=${encodeURIComponent(values.url)}`
+      const metadataResponse = await fetch(
+        `/api/video-metadata?url=${encodeURIComponent(values.url)}`
       );
-      if (!oembedResponse.ok) {
+      if (!metadataResponse.ok) {
         throw new Error('Could not fetch video details from URL.');
       }
-      const data = await oembedResponse.json();
+      const data = await metadataResponse.json();
 
       if (data.error) {
         throw new Error(data.error);
@@ -72,7 +73,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
       const newResource = {
         title: data.title || t('resources.untitledVideo'),
-        url: values.url,
+        url: data.url || values.url,
         category: initialCategory,
         createdAt: serverTimestamp(),
       };
@@ -105,9 +106,9 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
           name="url"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('resources.youtubeLink')}</FormLabel>
+              <FormLabel>{t('resources.videoLink')}</FormLabel>
               <FormControl>
-                <Input placeholder={t('resources.youtubePlaceholder')} {...field} />
+                <Input placeholder={t('resources.videoPlaceholder')} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

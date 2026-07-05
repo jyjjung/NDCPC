@@ -1,7 +1,7 @@
 'use client';
 
 import { Resource } from '@/lib/types';
-import { getYouTubeVideoId } from '@/lib/youtube';
+import { VideoEmbed } from '@/components/VideoEmbed';
 import { useTranslation } from '@/context/LocaleProvider';
 
 type SetlistMediaProps = {
@@ -14,10 +14,7 @@ function VideoList({ resources, startIndex = 1 }: { resources: Resource[]; start
 
   return (
     <ol className="space-y-6">
-      {resources.map((resource, index) => {
-        const videoId = getYouTubeVideoId(resource.url);
-
-        return (
+      {resources.map((resource, index) => (
           <li key={resource.id} className="space-y-2">
             <p
               className="break-words text-sm font-medium [overflow-wrap:anywhere]"
@@ -25,28 +22,9 @@ function VideoList({ resources, startIndex = 1 }: { resources: Resource[]; start
             >
               {startIndex + index}. {resource.title}
             </p>
-            <div className="aspect-video overflow-hidden rounded-md bg-muted/30">
-              {videoId ? (
-                <iframe
-                  width="100%"
-                  height="100%"
-                  src={`https://www.youtube.com/embed/${videoId}`}
-                  title={resource.title}
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : (
-                <iframe
-                  src={resource.url}
-                  className="h-full w-full"
-                  title={resource.title}
-                />
-              )}
-            </div>
+            <VideoEmbed url={resource.url} title={resource.title} />
           </li>
-        );
-      })}
+        ))}
     </ol>
   );
 }

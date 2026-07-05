@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from 'next/server';
+
+import { fetchNaverVideoTitle } from '@/lib/naver-metadata';
+import { getVideoProvider, isSupportedVideoUrl } from '@/lib/video';
+
+export const dynamic = 'force-dynamic';
+
+async function resolveVideoUrl(url: string) {
+  try {
+    const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+    return response.url || url;
+  } catch {
+    return url;
+  }
+}
+
+export async function GET(request: NextRequest) {
+  const rawUrl = request.nextUrl.searchParams.get('url');
+
+  if (!rawUrl) {
+    return NextResponse.json({ error: 'Missing url parameter' }, { status: 400 });
+  }
+
+  const url = await resolveVideoUrl(rawUrl);
+
+  if (!isSupportedVideoUrl(url)) {
+    return NextResponse.json({ error: 'Unsupported video URL' }, { status: 400 });
+  }
+
+  const provider = getVideoProvider(url);
+
+  if (provider === 'youtube') {
+    const oembedResponse = await fetch(
+      `https://noembed.com/embed?url=${encodeURIComponent(url)}`
+    );
+
+    if (!oembedResponse.ok) {
+      return NextResponse.json({ error: 'Could not fetch video details' }, { status: 422 });
+    }
+
+    const data = await oembedResponse.json();
+    if (data.error) {
+      return NextResponse.json({ error: data.error }, { status: 422 });
+    }
+
+    return NextResponse.json({
+      title: data.title,
+      url,
+    });
+  }
+
+  const title = await fetchNaverVideoTitle(url);
+  if (!title) {
+    return NextResponse.json({ error: 'Could not fetch video details' }, { status: 422 });
+  }
+
+  return NextResponse.json({
+    title,
+    url,
+  });
+}

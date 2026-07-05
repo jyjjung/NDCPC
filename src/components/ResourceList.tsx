@@ -11,18 +11,13 @@ import { useTranslation } from '@/context/LocaleProvider';
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
 import { DATA_CACHE_KEYS } from '@/lib/data-cache';
+import { VideoEmbed } from '@/components/VideoEmbed';
 
 interface ResourceListProps {
   category: 'songs' | 'chants';
   isManageMode: boolean;
   selectedResources: string[];
   onSelectionChange: (resourceId: string, isSelected: boolean) => void;
-}
-
-function getYouTubeVideoId(url: string) {
-  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  return match && match[2].length === 11 ? match[2] : null;
 }
 
 export function ResourceList({
@@ -61,7 +56,6 @@ export function ResourceList({
   }
 
   const content = resources.map((resource) => {
-    const youtubeVideoId = getYouTubeVideoId(resource.url);
     const isSelected = selectedResources.includes(resource.id);
 
     const trigger = (
@@ -104,21 +98,7 @@ export function ResourceList({
           {trigger}
         </AccordionTrigger>
         <AccordionContent className="pb-5 pt-0">
-          <div className="aspect-video w-full overflow-hidden rounded-md bg-muted/30">
-            {youtubeVideoId ? (
-              <iframe
-                width="100%"
-                height="100%"
-                src={`https://www.youtube.com/embed/${youtubeVideoId}`}
-                title={resource.title}
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            ) : (
-              <iframe src={resource.url} className="h-full w-full" title={resource.title} />
-            )}
-          </div>
+          <VideoEmbed url={resource.url} title={resource.title} />
         </AccordionContent>
       </AccordionItem>
     );
