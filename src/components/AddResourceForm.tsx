@@ -14,19 +14,17 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 import { useTranslation } from '@/context/LocaleProvider';
 import { getYouTubeVideoId, isAllowedVideoInputUrl } from '@/lib/video';
-import { formatChapterTime, type YouTubeChapter } from '@/lib/youtube-chapters';
+import {
+  resolveYouTubeClip,
+  YOUTUBE_FULL_VIDEO_VALUE,
+  type YouTubeChapter,
+} from '@/lib/youtube-chapters';
+import { YouTubeChapterSelect } from '@/components/YouTubeChapterSelect';
 
 interface AddResourceFormProps {
   initialCategory: 'songs' | 'chants';
@@ -38,16 +36,13 @@ type VideoPreview = {
   url: string;
   provider?: string;
   chapters?: YouTubeChapter[];
-  timestamp?: number | null;
 };
-
-const FULL_VIDEO_VALUE = 'full';
 
 export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [preview, setPreview] = useState<VideoPreview | null>(null);
-  const [selectedChapter, setSelectedChapter] = useState(FULL_VIDEO_VALUE);
+  const [selectedChapter, setSelectedChapter] = useState(YOUTUBE_FULL_VIDEO_VALUE);
   const { toast } = useToast();
   const firestore = useFirestore();
   const { t } = useTranslation();
@@ -71,14 +66,14 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
   useEffect(() => {
     form.reset({ url: '' });
     setPreview(null);
-    setSelectedChapter(FULL_VIDEO_VALUE);
+    setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
   }, [initialCategory, form]);
 
   useEffect(() => {
     const timeout = window.setTimeout(async () => {
       if (!watchedUrl || !isAllowedVideoInputUrl(watchedUrl) || !getYouTubeVideoId(watchedUrl)) {
         setPreview(null);
-        setSelectedChapter(FULL_VIDEO_VALUE);
+        setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
         return;
       }
 
@@ -92,24 +87,15 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
         if (!metadataResponse.ok || data.error) {
           setPreview(null);
-          setSelectedChapter(FULL_VIDEO_VALUE);
+          setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
           return;
         }
 
         setPreview(data);
-
-        if (typeof data.timestamp === 'number' && data.chapters?.length) {
-          const chapterIndex = data.chapters.findIndex((chapter: YouTubeChapter, index: number) => {
-            const endSeconds = chapter.endSeconds ?? Number.POSITIVE_INFINITY;
-            return data.timestamp >= chapter.startSeconds && data.timestamp < endSeconds;
-          });
-          setSelectedChapter(chapterIndex >= 0 ? String(chapterIndex) : FULL_VIDEO_VALUE);
-        } else {
-          setSelectedChapter(FULL_VIDEO_VALUE);
-        }
+        setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
       } catch {
         setPreview(null);
-        setSelectedChapter(FULL_VIDEO_VALUE);
+        setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
       } finally {
         setIsLoadingPreview(false);
       }
@@ -141,17 +127,22 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
       const metadata = isYouTube && preview?.url ? preview : await fetchVideoMetadata(values.url);
 
       let title = metadata.title || t('resources.untitledVideo');
-      let url = metadata.url || values.url;
+      const url = metadata.url || values.url;
       let startSeconds: number | undefined;
       let endSeconds: number | undefined;
 
-      if (isYouTube && metadata.chapters?.length && selectedChapter !== FULL_VIDEO_VALUE) {
-        const chapter = metadata.chapters[Number.parseInt(selectedChapter, 10)];
-        if (chapter) {
-          title = `${metadata.title} - ${chapter.title}`;
-          startSeconds = chapter.startSeconds;
-          endSeconds = chapter.endSeconds;
+      if (isYouTube) {
+        const clip = resolveYouTubeClip({
+          chapters: metadata.chapters,
+          selectedChapter,
+        });
+
+        if (clip.chapterTitle) {
+          title = `${metadata.title} - ${clip.chapterTitle}`;
         }
+
+        startSeconds = clip.startSeconds;
+        endSeconds = clip.endSeconds;
       }
 
       const resourcesCollectionRef = collection(firestore, 'resources');
@@ -171,7 +162,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
       form.reset({ url: '' });
       setPreview(null);
-      setSelectedChapter(FULL_VIDEO_VALUE);
+      setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
 
       if (onSuccess) {
         onSuccess();
@@ -187,7 +178,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
     }
   }
 
-  const hasChapters = Boolean(preview?.chapters?.length);
+  const chapters = preview?.chapters ?? [];
 
   return (
     <Form {...form}>
@@ -210,27 +201,12 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
           <p className="text-sm text-muted-foreground">{t('resources.loadingChapters')}</p>
         )}
 
-        {hasChapters && preview?.title && (
-          <div className="space-y-2">
-            <FormLabel>{t('resources.youtubeChapter')}</FormLabel>
-            <Select value={selectedChapter} onValueChange={setSelectedChapter}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('resources.selectChapter')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={FULL_VIDEO_VALUE}>{t('resources.fullVideo')}</SelectItem>
-                {preview.chapters?.map((chapter, index) => (
-                  <SelectItem key={`${chapter.startSeconds}-${chapter.title}`} value={String(index)}>
-                    {formatChapterTime(chapter.startSeconds)} - {chapter.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              {t('resources.chapterHint', { title: preview.title })}
-            </p>
-          </div>
-        )}
+        <YouTubeChapterSelect
+          chapters={chapters}
+          value={selectedChapter}
+          onChange={setSelectedChapter}
+          videoTitle={preview?.title}
+        />
 
         <Button type="submit" className="w-full" disabled={isSubmitting || isLoadingPreview}>
           {isSubmitting ? t('common.adding') : t('common.add')}

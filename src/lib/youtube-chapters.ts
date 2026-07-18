@@ -6,6 +6,8 @@ export type YouTubeChapter = {
   endSeconds?: number;
 };
 
+export const YOUTUBE_FULL_VIDEO_VALUE = 'full';
+
 const YOUTUBE_FETCH_HEADERS = {
   'User-Agent':
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
@@ -20,41 +22,6 @@ function unescapeYoutubeText(text: string) {
     .replace(/\\\//g, '/');
 }
 
-export function parseYouTubeTimestamp(value: string) {
-  if (/^\d+$/.test(value)) {
-    return Number.parseInt(value, 10);
-  }
-
-  const match = value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
-  if (!match || !match[0]) {
-    return null;
-  }
-
-  const hours = Number.parseInt(match[1] ?? '0', 10);
-  const minutes = Number.parseInt(match[2] ?? '0', 10);
-  const seconds = Number.parseInt(match[3] ?? '0', 10);
-
-  return hours * 3600 + minutes * 60 + seconds;
-}
-
-export function getYouTubeTimestampFromUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    const timestamp =
-      parsed.searchParams.get('t') ??
-      parsed.searchParams.get('start') ??
-      parsed.hash.match(/[#&]t=([^&]+)/)?.[1];
-
-    if (!timestamp) {
-      return null;
-    }
-
-    return parseYouTubeTimestamp(timestamp);
-  } catch {
-    return null;
-  }
-}
-
 export function normalizeYouTubeUrl(url: string) {
   const videoId = getYouTubeVideoId(url);
   if (!videoId) {
@@ -62,6 +29,27 @@ export function normalizeYouTubeUrl(url: string) {
   }
 
   return `https://www.youtube.com/watch?v=${videoId}`;
+}
+
+function dedupeChapters(chapters: YouTubeChapter[]): YouTubeChapter[] {
+  const seen = new Set<number>();
+  const unique: YouTubeChapter[] = [];
+
+  for (const chapter of chapters) {
+    if (seen.has(chapter.startSeconds)) {
+      continue;
+    }
+    seen.add(chapter.startSeconds);
+    unique.push({ title: chapter.title, startSeconds: chapter.startSeconds });
+  }
+
+  unique.sort((a, b) => a.startSeconds - b.startSeconds);
+
+  for (let index = 0; index < unique.length - 1; index += 1) {
+    unique[index].endSeconds = unique[index + 1].startSeconds;
+  }
+
+  return unique;
 }
 
 export function parseYouTubeChaptersFromHtml(html: string): YouTubeChapter[] {
@@ -76,11 +64,18 @@ export function parseYouTubeChaptersFromHtml(html: string): YouTubeChapter[] {
     });
   }
 
-  for (let index = 0; index < chapters.length - 1; index += 1) {
-    chapters[index].endSeconds = chapters[index + 1].startSeconds;
+  if (chapters.length === 0) {
+    const macroPattern =
+      /"macroMarkersListItemRenderer":\{"title":\{"simpleText":"((?:\\.|[^"\\])*)"\}[^}]*?"timeRangeStartMillis":(\d+)/g;
+    for (const match of html.matchAll(macroPattern)) {
+      chapters.push({
+        title: unescapeYoutubeText(match[1]),
+        startSeconds: Math.floor(Number.parseInt(match[2], 10) / 1000),
+      });
+    }
   }
 
-  return chapters;
+  return dedupeChapters(chapters);
 }
 
 export async function fetchYouTubeChapters(url: string): Promise<YouTubeChapter[]> {
@@ -111,4 +106,61 @@ export function formatChapterTime(totalSeconds: number) {
   }
 
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+export function findChapterIndexForStart(
+  chapters: YouTubeChapter[],
+  startSeconds?: number
+) {
+  if (startSeconds === undefined) {
+    return -1;
+  }
+
+  return chapters.findIndex((chapter) => chapter.startSeconds === startSeconds);
+}
+
+export type YouTubeClipSelection = {
+  startSeconds?: number;
+  endSeconds?: number;
+  chapterTitle?: string;
+};
+
+/** Resolve a song clip from a selected YouTube chapter only (URL timestamps ignored). */
+export function resolveYouTubeClip(options: {
+  chapters?: YouTubeChapter[];
+  selectedChapter: string;
+  fullVideoValue?: string;
+}): YouTubeClipSelection {
+  const fullVideoValue = options.fullVideoValue ?? YOUTUBE_FULL_VIDEO_VALUE;
+  const chapters = options.chapters ?? [];
+
+  if (options.selectedChapter === fullVideoValue || chapters.length === 0) {
+    return {};
+  }
+
+  const chapter = chapters[Number.parseInt(options.selectedChapter, 10)];
+  if (!chapter) {
+    return {};
+  }
+
+  return {
+    startSeconds: chapter.startSeconds,
+    ...(chapter.endSeconds !== undefined ? { endSeconds: chapter.endSeconds } : {}),
+    chapterTitle: chapter.title,
+  };
+}
+
+/** Prefer the base video title when an existing resource was saved as "Video - Chapter". */
+export function getBaseVideoTitle(resourceTitle: string, videoTitle?: string) {
+  if (videoTitle) {
+    return videoTitle;
+  }
+
+  const separator = ' - ';
+  const index = resourceTitle.lastIndexOf(separator);
+  if (index > 0) {
+    return resourceTitle.slice(0, index);
+  }
+
+  return resourceTitle;
 }

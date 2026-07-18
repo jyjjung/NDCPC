@@ -6,12 +6,17 @@ import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, query, orderBy } from 'firebase/firestore';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { useTranslation } from '@/context/LocaleProvider';
 import { LoadingState } from './LoadingState';
 import { EmptyState } from './EmptyState';
 import { DATA_CACHE_KEYS } from '@/lib/data-cache';
 import { VideoEmbed } from '@/components/VideoEmbed';
+import { EditResourceChapterForm } from '@/components/EditResourceChapterForm';
+import { getYouTubeVideoId } from '@/lib/video';
+import { Pencil } from 'lucide-react';
 
 interface ResourceListProps {
   category: 'songs' | 'chants';
@@ -28,6 +33,7 @@ export function ResourceList({
 }: ResourceListProps) {
   const firestore = useFirestore();
   const { t } = useTranslation();
+  const [editingResource, setEditingResource] = React.useState<Resource | null>(null);
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
@@ -57,6 +63,7 @@ export function ResourceList({
 
   const content = resources.map((resource) => {
     const isSelected = selectedResources.includes(resource.id);
+    const canEditChapter = Boolean(getYouTubeVideoId(resource.url));
 
     const trigger = (
       <div className="flex w-full items-center gap-3">
@@ -98,24 +105,49 @@ export function ResourceList({
           {trigger}
         </AccordionTrigger>
         <AccordionContent className="pb-5 pt-0">
-          <VideoEmbed
-            url={resource.url}
-            title={resource.title}
-            startSeconds={resource.startSeconds}
-            endSeconds={resource.endSeconds}
-          />
+          <div className="space-y-3">
+            <VideoEmbed
+              url={resource.url}
+              title={resource.title}
+              startSeconds={resource.startSeconds}
+              endSeconds={resource.endSeconds}
+            />
+            {canEditChapter && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="px-0"
+                onClick={() => setEditingResource(resource)}
+              >
+                <Pencil className="mr-1.5 h-3.5 w-3.5" />
+                {t('resources.editChapter')}
+              </Button>
+            )}
+          </div>
         </AccordionContent>
       </AccordionItem>
     );
   });
 
-  if (isManageMode) {
-    return <div>{content}</div>;
-  }
-
   return (
-    <Accordion type="single" collapsible>
-      {content}
-    </Accordion>
+    <>
+      {isManageMode ? <div>{content}</div> : <Accordion type="single" collapsible>{content}</Accordion>}
+
+      <Dialog open={!!editingResource} onOpenChange={(open) => !open && setEditingResource(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t('resources.editChapter')}</DialogTitle>
+          </DialogHeader>
+          {editingResource && (
+            <EditResourceChapterForm
+              key={editingResource.id}
+              resource={editingResource}
+              onSuccess={() => setEditingResource(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

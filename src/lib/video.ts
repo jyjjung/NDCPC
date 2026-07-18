@@ -3,6 +3,8 @@ export type VideoProvider = 'youtube' | 'naver';
 export type VideoEmbedOptions = {
   startSeconds?: number;
   endSeconds?: number;
+  enableJsApi?: boolean;
+  origin?: string;
 };
 
 export function getYouTubeVideoId(url: string) {
@@ -80,14 +82,27 @@ export function isAllowedVideoInputUrl(url: string) {
 export function getVideoEmbedUrl(url: string, options?: VideoEmbedOptions) {
   const youtubeId = getYouTubeVideoId(url);
   if (youtubeId) {
-    const embedUrl = new URL(`https://www.youtube.com/embed/${youtubeId}`);
+    const hasClip =
+      options?.startSeconds !== undefined || options?.endSeconds !== undefined;
+    // nocookie avoids signed-in YouTube history overriding chapter start times.
+    const embedHost = hasClip
+      ? 'https://www.youtube-nocookie.com'
+      : 'https://www.youtube.com';
+    const embedUrl = new URL(`${embedHost}/embed/${youtubeId}`);
 
     if (options?.startSeconds !== undefined) {
-      embedUrl.searchParams.set('start', String(options.startSeconds));
+      embedUrl.searchParams.set('start', String(Math.floor(options.startSeconds)));
     }
 
     if (options?.endSeconds !== undefined) {
-      embedUrl.searchParams.set('end', String(options.endSeconds));
+      embedUrl.searchParams.set('end', String(Math.floor(options.endSeconds)));
+    }
+
+    if (options?.enableJsApi) {
+      embedUrl.searchParams.set('enablejsapi', '1');
+      if (options.origin) {
+        embedUrl.searchParams.set('origin', options.origin);
+      }
     }
 
     return embedUrl.toString();
