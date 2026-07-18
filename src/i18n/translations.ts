@@ -277,6 +277,8 @@ export const translations = {
     'resources.fullVideo': 'Full video',
     'resources.loadingChapters': 'Loading chapters…',
     'resources.chapterHint': 'From: {title}',
+    'resources.youtubeMarker': 'Song marker',
+    'resources.markerStartsAt': 'Starts at {time} (from link)',
 
     'setlist.new': 'New setlist',
     'setlist.edit': 'Edit setlist',
@@ -616,6 +618,8 @@ export const translations = {
     'resources.fullVideo': '전체 영상',
     'resources.loadingChapters': '챕터 불러오는 중…',
     'resources.chapterHint': '영상: {title}',
+    'resources.youtubeMarker': '곡 마커',
+    'resources.markerStartsAt': '{time}부터 시작 (링크 기준)',
 
     'setlist.new': '새 셋리스트',
     'setlist.edit': '셋리스트 수정',

@@ -11,6 +11,41 @@ export function getYouTubeVideoId(url: string) {
   return match && match[2].length === 11 ? match[2] : null;
 }
 
+export function parseYouTubeTimestamp(value: string) {
+  if (/^\d+$/.test(value)) {
+    return Number.parseInt(value, 10);
+  }
+
+  const match = value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
+  if (!match || !match[0]) {
+    return null;
+  }
+
+  const hours = Number.parseInt(match[1] ?? '0', 10);
+  const minutes = Number.parseInt(match[2] ?? '0', 10);
+  const seconds = Number.parseInt(match[3] ?? '0', 10);
+
+  return hours * 3600 + minutes * 60 + seconds;
+}
+
+export function getYouTubeTimestampFromUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const timestamp =
+      parsed.searchParams.get('t') ??
+      parsed.searchParams.get('start') ??
+      parsed.hash.match(/[#&]t=([^&]+)/)?.[1];
+
+    if (!timestamp) {
+      return null;
+    }
+
+    return parseYouTubeTimestamp(timestamp);
+  } catch {
+    return null;
+  }
+}
+
 export function getNaverVideoId(url: string) {
   const match = url.match(/(?:m\.)?tv(?:cast)?\.naver\.com\/(?:v|embed)\/(\d+)/i);
   return match?.[1] ?? null;
@@ -81,9 +116,10 @@ export function getVideoEmbedUrl(url: string, options?: VideoEmbedOptions) {
   const youtubeId = getYouTubeVideoId(url);
   if (youtubeId) {
     const embedUrl = new URL(`https://www.youtube.com/embed/${youtubeId}`);
+    const startSeconds = options?.startSeconds ?? getYouTubeTimestampFromUrl(url) ?? undefined;
 
-    if (options?.startSeconds !== undefined) {
-      embedUrl.searchParams.set('start', String(options.startSeconds));
+    if (startSeconds !== undefined) {
+      embedUrl.searchParams.set('start', String(startSeconds));
     }
 
     if (options?.endSeconds !== undefined) {

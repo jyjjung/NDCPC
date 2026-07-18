@@ -26,7 +26,15 @@ import { useFirestore } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 import { useTranslation } from '@/context/LocaleProvider';
 import { getYouTubeVideoId, isAllowedVideoInputUrl } from '@/lib/video';
-import { formatChapterTime, type YouTubeChapter } from '@/lib/youtube-chapters';
+import {
+  findChapterIndexForTimestamp,
+  formatChapterTime,
+  getYouTubeTimestampFromUrl,
+  resolveYouTubeClip,
+  YOUTUBE_FULL_VIDEO_VALUE,
+  YOUTUBE_MARKER_VALUE,
+  type YouTubeChapter,
+} from '@/lib/youtube-chapters';
 
 interface AddResourceFormProps {
   initialCategory: 'songs' | 'chants';
@@ -41,13 +49,11 @@ type VideoPreview = {
   timestamp?: number | null;
 };
 
-const FULL_VIDEO_VALUE = 'full';
-
 export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
   const [preview, setPreview] = useState<VideoPreview | null>(null);
-  const [selectedChapter, setSelectedChapter] = useState(FULL_VIDEO_VALUE);
+  const [selectedChapter, setSelectedChapter] = useState(YOUTUBE_FULL_VIDEO_VALUE);
   const { toast } = useToast();
   const firestore = useFirestore();
   const { t } = useTranslation();
@@ -71,14 +77,14 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
   useEffect(() => {
     form.reset({ url: '' });
     setPreview(null);
-    setSelectedChapter(FULL_VIDEO_VALUE);
+    setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
   }, [initialCategory, form]);
 
   useEffect(() => {
     const timeout = window.setTimeout(async () => {
       if (!watchedUrl || !isAllowedVideoInputUrl(watchedUrl) || !getYouTubeVideoId(watchedUrl)) {
         setPreview(null);
-        setSelectedChapter(FULL_VIDEO_VALUE);
+        setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
         return;
       }
 
@@ -92,24 +98,27 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
         if (!metadataResponse.ok || data.error) {
           setPreview(null);
-          setSelectedChapter(FULL_VIDEO_VALUE);
+          setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
           return;
         }
 
         setPreview(data);
 
-        if (typeof data.timestamp === 'number' && data.chapters?.length) {
-          const chapterIndex = data.chapters.findIndex((chapter: YouTubeChapter, index: number) => {
-            const endSeconds = chapter.endSeconds ?? Number.POSITIVE_INFINITY;
-            return data.timestamp >= chapter.startSeconds && data.timestamp < endSeconds;
-          });
-          setSelectedChapter(chapterIndex >= 0 ? String(chapterIndex) : FULL_VIDEO_VALUE);
+        if (typeof data.timestamp === 'number' && data.timestamp > 0) {
+          if (data.chapters?.length) {
+            const chapterIndex = findChapterIndexForTimestamp(data.chapters, data.timestamp);
+            setSelectedChapter(
+              chapterIndex >= 0 ? String(chapterIndex) : YOUTUBE_MARKER_VALUE
+            );
+          } else {
+            setSelectedChapter(YOUTUBE_MARKER_VALUE);
+          }
         } else {
-          setSelectedChapter(FULL_VIDEO_VALUE);
+          setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
         }
       } catch {
         setPreview(null);
-        setSelectedChapter(FULL_VIDEO_VALUE);
+        setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
       } finally {
         setIsLoadingPreview(false);
       }
@@ -141,17 +150,28 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
       const metadata = isYouTube && preview?.url ? preview : await fetchVideoMetadata(values.url);
 
       let title = metadata.title || t('resources.untitledVideo');
-      let url = metadata.url || values.url;
+      const url = metadata.url || values.url;
       let startSeconds: number | undefined;
       let endSeconds: number | undefined;
 
-      if (isYouTube && metadata.chapters?.length && selectedChapter !== FULL_VIDEO_VALUE) {
-        const chapter = metadata.chapters[Number.parseInt(selectedChapter, 10)];
-        if (chapter) {
-          title = `${metadata.title} - ${chapter.title}`;
-          startSeconds = chapter.startSeconds;
-          endSeconds = chapter.endSeconds;
+      if (isYouTube) {
+        const timestamp =
+          typeof metadata.timestamp === 'number'
+            ? metadata.timestamp
+            : getYouTubeTimestampFromUrl(values.url);
+
+        const clip = resolveYouTubeClip({
+          chapters: metadata.chapters,
+          selectedChapter,
+          timestamp,
+        });
+
+        if (clip.chapterTitle) {
+          title = `${metadata.title} - ${clip.chapterTitle}`;
         }
+
+        startSeconds = clip.startSeconds;
+        endSeconds = clip.endSeconds;
       }
 
       const resourcesCollectionRef = collection(firestore, 'resources');
@@ -171,7 +191,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
 
       form.reset({ url: '' });
       setPreview(null);
-      setSelectedChapter(FULL_VIDEO_VALUE);
+      setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
 
       if (onSuccess) {
         onSuccess();
@@ -188,6 +208,10 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
   }
 
   const hasChapters = Boolean(preview?.chapters?.length);
+  const markerSeconds =
+    typeof preview?.timestamp === 'number' && preview.timestamp > 0 ? preview.timestamp : null;
+  // Timestamp-only links (no chapter list): show the preserved song marker.
+  const showTimestampMarker = Boolean(markerSeconds && !hasChapters);
 
   return (
     <Form {...form}>
@@ -218,7 +242,12 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
                 <SelectValue placeholder={t('resources.selectChapter')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={FULL_VIDEO_VALUE}>{t('resources.fullVideo')}</SelectItem>
+                <SelectItem value={YOUTUBE_FULL_VIDEO_VALUE}>{t('resources.fullVideo')}</SelectItem>
+                {markerSeconds !== null && (
+                  <SelectItem value={YOUTUBE_MARKER_VALUE}>
+                    {formatChapterTime(markerSeconds)} - {t('resources.youtubeMarker')}
+                  </SelectItem>
+                )}
                 {preview.chapters?.map((chapter, index) => (
                   <SelectItem key={`${chapter.startSeconds}-${chapter.title}`} value={String(index)}>
                     {formatChapterTime(chapter.startSeconds)} - {chapter.title}
@@ -229,6 +258,20 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
             <p className="text-sm text-muted-foreground">
               {t('resources.chapterHint', { title: preview.title })}
             </p>
+          </div>
+        )}
+
+        {showTimestampMarker && markerSeconds !== null && (
+          <div className="space-y-1">
+            <FormLabel>{t('resources.youtubeMarker')}</FormLabel>
+            <p className="text-sm">
+              {t('resources.markerStartsAt', { time: formatChapterTime(markerSeconds) })}
+            </p>
+            {preview?.title && (
+              <p className="text-sm text-muted-foreground">
+                {t('resources.chapterHint', { title: preview.title })}
+              </p>
+            )}
           </div>
         )}
 

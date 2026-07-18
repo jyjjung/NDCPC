@@ -1,4 +1,4 @@
-import { getYouTubeVideoId } from '@/lib/video';
+import { getYouTubeTimestampFromUrl, getYouTubeVideoId } from '@/lib/video';
 
 export type YouTubeChapter = {
   title: string;
@@ -20,40 +20,7 @@ function unescapeYoutubeText(text: string) {
     .replace(/\\\//g, '/');
 }
 
-export function parseYouTubeTimestamp(value: string) {
-  if (/^\d+$/.test(value)) {
-    return Number.parseInt(value, 10);
-  }
-
-  const match = value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/i);
-  if (!match || !match[0]) {
-    return null;
-  }
-
-  const hours = Number.parseInt(match[1] ?? '0', 10);
-  const minutes = Number.parseInt(match[2] ?? '0', 10);
-  const seconds = Number.parseInt(match[3] ?? '0', 10);
-
-  return hours * 3600 + minutes * 60 + seconds;
-}
-
-export function getYouTubeTimestampFromUrl(url: string) {
-  try {
-    const parsed = new URL(url);
-    const timestamp =
-      parsed.searchParams.get('t') ??
-      parsed.searchParams.get('start') ??
-      parsed.hash.match(/[#&]t=([^&]+)/)?.[1];
-
-    if (!timestamp) {
-      return null;
-    }
-
-    return parseYouTubeTimestamp(timestamp);
-  } catch {
-    return null;
-  }
-}
+export { getYouTubeTimestampFromUrl };
 
 export function normalizeYouTubeUrl(url: string) {
   const videoId = getYouTubeVideoId(url);
@@ -111,4 +78,68 @@ export function formatChapterTime(totalSeconds: number) {
   }
 
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
+}
+
+export function findChapterIndexForTimestamp(
+  chapters: YouTubeChapter[],
+  timestamp: number
+) {
+  return chapters.findIndex((chapter) => {
+    const endSeconds = chapter.endSeconds ?? Number.POSITIVE_INFINITY;
+    return timestamp >= chapter.startSeconds && timestamp < endSeconds;
+  });
+}
+
+export type YouTubeClipSelection = {
+  startSeconds?: number;
+  endSeconds?: number;
+  chapterTitle?: string;
+};
+
+export const YOUTUBE_FULL_VIDEO_VALUE = 'full';
+export const YOUTUBE_MARKER_VALUE = 'marker';
+
+/**
+ * Resolve a song clip from either a selected chapter or a single URL timestamp marker.
+ * Timestamp-only links (e.g. youtu.be/VIDEO?t=491) must keep their start time even when
+ * the watch URL is normalized without `t=`.
+ */
+export function resolveYouTubeClip(options: {
+  chapters?: YouTubeChapter[];
+  selectedChapter: string;
+  fullVideoValue?: string;
+  markerValue?: string;
+  timestamp?: number | null;
+}): YouTubeClipSelection {
+  const fullVideoValue = options.fullVideoValue ?? YOUTUBE_FULL_VIDEO_VALUE;
+  const markerValue = options.markerValue ?? YOUTUBE_MARKER_VALUE;
+  const chapters = options.chapters ?? [];
+
+  if (options.selectedChapter === fullVideoValue) {
+    return {};
+  }
+
+  if (options.selectedChapter === markerValue) {
+    if (typeof options.timestamp === 'number' && options.timestamp > 0) {
+      return { startSeconds: options.timestamp };
+    }
+    return {};
+  }
+
+  if (chapters.length > 0) {
+    const chapter = chapters[Number.parseInt(options.selectedChapter, 10)];
+    if (chapter) {
+      return {
+        startSeconds: chapter.startSeconds,
+        ...(chapter.endSeconds !== undefined ? { endSeconds: chapter.endSeconds } : {}),
+        chapterTitle: chapter.title,
+      };
+    }
+  }
+
+  if (typeof options.timestamp === 'number' && options.timestamp > 0) {
+    return { startSeconds: options.timestamp };
+  }
+
+  return {};
 }
