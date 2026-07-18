@@ -4,11 +4,7 @@ import { fetchNaverBlogVideoInfo, isNaverBlogUrl } from '@/lib/naver-blog';
 import { fetchNaverVideoTitle } from '@/lib/naver-metadata';
 import { resolveVideoUrl } from '@/lib/resolve-video-url';
 import { getVideoProvider, isSupportedVideoUrl } from '@/lib/video';
-import {
-  fetchYouTubeChapters,
-  getYouTubeTimestampFromUrl,
-  normalizeYouTubeUrl,
-} from '@/lib/youtube-chapters';
+import { fetchYouTubeChapters, normalizeYouTubeUrl } from '@/lib/youtube-chapters';
 
 export const dynamic = 'force-dynamic';
 
@@ -55,14 +51,12 @@ export async function GET(request: NextRequest) {
 
     const normalizedUrl = normalizeYouTubeUrl(url);
     const chapters = await fetchYouTubeChapters(normalizedUrl);
-    const timestamp = getYouTubeTimestampFromUrl(rawUrl);
 
     return NextResponse.json({
       title: data.title,
       url: normalizedUrl,
       provider: 'youtube',
       chapters,
-      timestamp,
     });
   }
 

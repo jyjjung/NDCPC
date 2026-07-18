@@ -14,27 +14,17 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore } from '@/firebase';
 import { collection, serverTimestamp, addDoc } from 'firebase/firestore';
 import { useTranslation } from '@/context/LocaleProvider';
 import { getYouTubeVideoId, isAllowedVideoInputUrl } from '@/lib/video';
 import {
-  findChapterIndexForTimestamp,
-  formatChapterTime,
-  getYouTubeTimestampFromUrl,
   resolveYouTubeClip,
   YOUTUBE_FULL_VIDEO_VALUE,
-  YOUTUBE_MARKER_VALUE,
   type YouTubeChapter,
 } from '@/lib/youtube-chapters';
+import { YouTubeChapterSelect } from '@/components/YouTubeChapterSelect';
 
 interface AddResourceFormProps {
   initialCategory: 'songs' | 'chants';
@@ -46,7 +36,6 @@ type VideoPreview = {
   url: string;
   provider?: string;
   chapters?: YouTubeChapter[];
-  timestamp?: number | null;
 };
 
 export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormProps) {
@@ -103,19 +92,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
         }
 
         setPreview(data);
-
-        if (typeof data.timestamp === 'number' && data.timestamp > 0) {
-          if (data.chapters?.length) {
-            const chapterIndex = findChapterIndexForTimestamp(data.chapters, data.timestamp);
-            setSelectedChapter(
-              chapterIndex >= 0 ? String(chapterIndex) : YOUTUBE_MARKER_VALUE
-            );
-          } else {
-            setSelectedChapter(YOUTUBE_MARKER_VALUE);
-          }
-        } else {
-          setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
-        }
+        setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
       } catch {
         setPreview(null);
         setSelectedChapter(YOUTUBE_FULL_VIDEO_VALUE);
@@ -155,15 +132,9 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
       let endSeconds: number | undefined;
 
       if (isYouTube) {
-        const timestamp =
-          typeof metadata.timestamp === 'number'
-            ? metadata.timestamp
-            : getYouTubeTimestampFromUrl(values.url);
-
         const clip = resolveYouTubeClip({
           chapters: metadata.chapters,
           selectedChapter,
-          timestamp,
         });
 
         if (clip.chapterTitle) {
@@ -207,11 +178,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
     }
   }
 
-  const hasChapters = Boolean(preview?.chapters?.length);
-  const markerSeconds =
-    typeof preview?.timestamp === 'number' && preview.timestamp > 0 ? preview.timestamp : null;
-  // Timestamp-only links (no chapter list): show the preserved song marker.
-  const showTimestampMarker = Boolean(markerSeconds && !hasChapters);
+  const chapters = preview?.chapters ?? [];
 
   return (
     <Form {...form}>
@@ -234,46 +201,12 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
           <p className="text-sm text-muted-foreground">{t('resources.loadingChapters')}</p>
         )}
 
-        {hasChapters && preview?.title && (
-          <div className="space-y-2">
-            <FormLabel>{t('resources.youtubeChapter')}</FormLabel>
-            <Select value={selectedChapter} onValueChange={setSelectedChapter}>
-              <SelectTrigger>
-                <SelectValue placeholder={t('resources.selectChapter')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={YOUTUBE_FULL_VIDEO_VALUE}>{t('resources.fullVideo')}</SelectItem>
-                {markerSeconds !== null && (
-                  <SelectItem value={YOUTUBE_MARKER_VALUE}>
-                    {formatChapterTime(markerSeconds)} - {t('resources.youtubeMarker')}
-                  </SelectItem>
-                )}
-                {preview.chapters?.map((chapter, index) => (
-                  <SelectItem key={`${chapter.startSeconds}-${chapter.title}`} value={String(index)}>
-                    {formatChapterTime(chapter.startSeconds)} - {chapter.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <p className="text-sm text-muted-foreground">
-              {t('resources.chapterHint', { title: preview.title })}
-            </p>
-          </div>
-        )}
-
-        {showTimestampMarker && markerSeconds !== null && (
-          <div className="space-y-1">
-            <FormLabel>{t('resources.youtubeMarker')}</FormLabel>
-            <p className="text-sm">
-              {t('resources.markerStartsAt', { time: formatChapterTime(markerSeconds) })}
-            </p>
-            {preview?.title && (
-              <p className="text-sm text-muted-foreground">
-                {t('resources.chapterHint', { title: preview.title })}
-              </p>
-            )}
-          </div>
-        )}
+        <YouTubeChapterSelect
+          chapters={chapters}
+          value={selectedChapter}
+          onChange={setSelectedChapter}
+          videoTitle={preview?.title}
+        />
 
         <Button type="submit" className="w-full" disabled={isSubmitting || isLoadingPreview}>
           {isSubmitting ? t('common.adding') : t('common.add')}
