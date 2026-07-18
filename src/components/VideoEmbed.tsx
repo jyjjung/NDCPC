@@ -49,12 +49,10 @@ export function VideoEmbed({
   const start = toFiniteSeconds(startSeconds);
   const end = toFiniteSeconds(endSeconds);
   const youtubeId = getYouTubeVideoId(url);
-  const origin = typeof window !== 'undefined' ? window.location.origin : undefined;
   const embedUrl = getVideoEmbedUrl(url, {
     startSeconds: start,
     endSeconds: end,
     enableJsApi: Boolean(youtubeId && start !== undefined),
-    origin,
   });
 
   useEffect(() => {

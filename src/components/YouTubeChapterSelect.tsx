@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FormLabel } from '@/components/ui/form';
+import { Label } from '@/components/ui/label';
 import { useTranslation } from '@/context/LocaleProvider';
 import {
   formatChapterTime,
@@ -36,7 +36,7 @@ export function YouTubeChapterSelect({
 
   return (
     <div className="space-y-2">
-      <FormLabel>{t('resources.youtubeChapter')}</FormLabel>
+      <Label>{t('resources.youtubeChapter')}</Label>
       <Select value={value} onValueChange={onChange}>
         <SelectTrigger>
           <SelectValue placeholder={t('resources.selectChapter')} />
