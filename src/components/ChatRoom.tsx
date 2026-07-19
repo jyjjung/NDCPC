@@ -9,6 +9,7 @@ import {
   addDoc,
   collection,
   deleteDoc,
+  deleteField,
   doc,
   limit,
   orderBy,
@@ -29,6 +30,7 @@ import {
   getGroupSpacingClass,
   getMessageDate,
   getReadReceiptNamesByMessageId,
+  isChatMessageDeleted,
   shouldShowDateSeparator,
 } from '@/lib/chat-message-meta';
 import { DATA_CACHE_KEYS } from '@/lib/data-cache';
@@ -106,6 +108,7 @@ export function ChatRoom() {
 
     const pending = messages.filter(
       (message) =>
+        !isChatMessageDeleted(message) &&
         message.authorUid !== user.uid &&
         !message.seenBy?.[user.uid] &&
         !markedSeenRef.current.has(message.id)
@@ -173,19 +176,35 @@ export function ChatRoom() {
 
   const handleDelete = async (message: ChatMessage) => {
     if (!firestore || !user || message.authorUid !== user.uid) return;
+    if (isChatMessageDeleted(message)) return;
+
+    const messageRef = doc(firestore, 'chatMessages', message.id);
 
     try {
-      await deleteDoc(doc(firestore, 'chatMessages', message.id));
+      await updateDoc(messageRef, {
+        deleted: true,
+        text: '',
+        ...(message.replyTo ? { replyTo: deleteField() } : {}),
+        ...(message.reactions ? { reactions: deleteField() } : {}),
+      });
       if (replyTo?.id === message.id) setReplyTo(null);
       toast({ title: t('toast.deleted') });
-    } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: t('toast.couldntDelete') });
+    } catch (softDeleteError) {
+      console.error(softDeleteError);
+      // Fallback if soft-delete rules are not deployed yet.
+      try {
+        await deleteDoc(messageRef);
+        if (replyTo?.id === message.id) setReplyTo(null);
+        toast({ title: t('toast.deleted') });
+      } catch (error) {
+        console.error(error);
+        toast({ variant: 'destructive', title: t('toast.couldntDelete') });
+      }
     }
   };
 
   const handleReact = async (message: ChatMessage, emoji: string) => {
-    if (!firestore || !user) return;
+    if (!firestore || !user || isChatMessageDeleted(message)) return;
 
     const nextReactions = { ...(message.reactions ?? {}) };
     let existingEmoji: string | null = null;
@@ -277,6 +296,7 @@ export function ChatRoom() {
                     dateLabel={dateLabel}
                     timeLabel={showDate ? null : timeLabel}
                     onReply={(message) => {
+                      if (isChatMessageDeleted(message)) return;
                       setReplyTo(message);
                       inputRef.current?.focus();
                     }}

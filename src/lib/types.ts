@@ -72,6 +72,8 @@ export type ChatMessage = {
   replyTo?: ChatReplyTo;
   reactions?: Record<string, string[]>;
   seenBy?: Record<string, { name?: string; at?: unknown }>;
+  /** Soft-deleted messages stay in the timeline as a placeholder. */
+  deleted?: boolean;
 };
 
 export type Announcement = {

@@ -1,4 +1,5 @@
 import type { Announcement, ChatMessage } from '@/lib/types';
+import { isChatMessageDeleted } from '@/lib/chat-message-meta';
 
 export function getFirestoreMillis(value: unknown): number {
   if (!value || typeof value !== 'object') return 0;
@@ -32,6 +33,7 @@ export function countUnreadChatMessages(
   if (!messages?.length || !userId) return 0;
 
   return messages.filter((message) => {
+    if (isChatMessageDeleted(message)) return false;
     return message.authorUid !== userId && !message.seenBy?.[userId];
   }).length;
 }

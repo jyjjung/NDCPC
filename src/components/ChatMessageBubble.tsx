@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { CornerUpLeft, SmilePlus, Trash2 } from 'lucide-react';
 import { ChatMessage } from '@/lib/types';
 import type { MessageGroupPosition } from '@/lib/chat-message-meta';
-import { getMessageGroupPosition } from '@/lib/chat-message-meta';
+import { getMessageGroupPosition, isChatMessageDeleted } from '@/lib/chat-message-meta';
 import type { TranslationKey } from '@/i18n/translations';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -102,9 +102,10 @@ export function ChatMessageBubble({
   onDelete,
   t,
 }: ChatMessageBubbleProps) {
-  const reactionEntries = Object.entries(message.reactions ?? {}).filter(
-    ([, uids]) => uids.length > 0
-  );
+  const isDeleted = isChatMessageDeleted(message);
+  const reactionEntries = isDeleted
+    ? []
+    : Object.entries(message.reactions ?? {}).filter(([, uids]) => uids.length > 0);
 
   return (
     <div
@@ -124,24 +125,36 @@ export function ChatMessageBubble({
               : groupPosition === 'single' || groupPosition === 'last'
                 ? 'chat-bubble-other-tail'
                 : null,
-            isOwn ? 'bg-primary text-primary-foreground' : 'bg-muted text-foreground',
+            isDeleted
+              ? isOwn
+                ? 'bg-primary/40 text-primary-foreground/80'
+                : 'bg-muted/70 text-muted-foreground'
+              : isOwn
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-foreground',
             reactionEntries.length > 0 && 'mb-2'
           )}
         >
-          {message.replyTo ? (
-            <div
-              className={cn(
-                'mb-1 rounded-md border-l-2 px-2 py-0.5 text-[11px] leading-tight',
-                isOwn
-                  ? 'border-primary-foreground/40 bg-primary-foreground/10'
-                  : 'border-primary/40 bg-background/40 text-muted-foreground'
-              )}
-            >
-              <p className="font-medium text-foreground/90">{message.replyTo.authorName}</p>
-              <p className="truncate opacity-80">{message.replyTo.text}</p>
-            </div>
-          ) : null}
-          <span className="whitespace-pre-wrap break-words">{message.text}</span>
+          {isDeleted ? (
+            <span className="italic">{t('chat.messageDeleted')}</span>
+          ) : (
+            <>
+              {message.replyTo ? (
+                <div
+                  className={cn(
+                    'mb-1 rounded-md border-l-2 px-2 py-0.5 text-[11px] leading-tight',
+                    isOwn
+                      ? 'border-primary-foreground/40 bg-primary-foreground/10'
+                      : 'border-primary/40 bg-background/40 text-muted-foreground'
+                  )}
+                >
+                  <p className="font-medium text-foreground/90">{message.replyTo.authorName}</p>
+                  <p className="truncate opacity-80">{message.replyTo.text}</p>
+                </div>
+              ) : null}
+              <span className="whitespace-pre-wrap break-words">{message.text}</span>
+            </>
+          )}
         </div>
 
         {reactionEntries.length > 0 ? (
@@ -176,13 +189,15 @@ export function ChatMessageBubble({
         ) : null}
       </div>
 
-      <MessageActions
-        isOwn={isOwn}
-        onReply={onReply}
-        onReact={onReact}
-        onDelete={onDelete}
-        t={t}
-      />
+      {!isDeleted ? (
+        <MessageActions
+          isOwn={isOwn}
+          onReply={onReply}
+          onReact={onReact}
+          onDelete={onDelete}
+          t={t}
+        />
+      ) : null}
     </div>
   );
 }

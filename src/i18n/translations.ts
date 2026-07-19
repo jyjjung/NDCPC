@@ -160,6 +160,7 @@ export const translations = {
     'chat.seenByYou': 'Seen by you',
     'chat.seenByNone': 'Delivered',
     'chat.delete': 'Delete message',
+    'chat.messageDeleted': 'This message was deleted',
     'chat.today': 'Today',
     'chat.yesterday': 'Yesterday',
 
@@ -509,6 +510,7 @@ export const translations = {
     'chat.seenByYou': '읽음',
     'chat.seenByNone': '전송됨',
     'chat.delete': '메시지 삭제',
+    'chat.messageDeleted': '삭제된 메시지입니다',
     'chat.today': '오늘',
     'chat.yesterday': '어제',
 

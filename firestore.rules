@@ -55,7 +55,22 @@ service cloud.firestore {
           && request.resource.data.text == resource.data.text
           && request.resource.data.authorName == resource.data.authorName
           && request.resource.data.createdAt == resource.data.createdAt
-          && request.resource.data.get('replyTo', null) == resource.data.get('replyTo', null);
+          && request.resource.data.get('replyTo', null) == resource.data.get('replyTo', null)
+          && request.resource.data.get('deleted', false) == resource.data.get('deleted', false);
+      }
+
+      function isAuthorSoftDelete() {
+        return resource.data.authorUid == request.auth.uid
+          && resource.data.get('deleted', false) != true
+          && request.resource.data.deleted == true
+          && request.resource.data.authorUid == resource.data.authorUid
+          && request.resource.data.authorName == resource.data.authorName
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.text == ''
+          && !('replyTo' in request.resource.data)
+          && !('reactions' in request.resource.data)
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['deleted', 'text', 'replyTo', 'reactions']);
       }
 
       allow create: if isApproved()
@@ -64,6 +79,7 @@ service cloud.firestore {
         && request.resource.data.text.size() > 0
         && request.resource.data.text.size() <= 2000
         && request.resource.data.authorName is string
+        && request.resource.data.get('deleted', false) == false
         && (!('replyTo' in request.resource.data) || (
           request.resource.data.replyTo is map
           && request.resource.data.replyTo.messageId is string
@@ -72,10 +88,14 @@ service cloud.firestore {
           && request.resource.data.replyTo.text.size() <= 200
         ));
 
-      allow update: if isApproved()
-        && chatCoreUnchanged()
-        && request.resource.data.diff(resource.data).affectedKeys()
-          .hasOnly(['reactions', 'seenBy']);
+      allow update: if isApproved() && (
+        (
+          chatCoreUnchanged()
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['reactions', 'seenBy'])
+        )
+        || isAuthorSoftDelete()
+      );
 
       allow delete: if isApproved() && resource.data.authorUid == request.auth.uid;
     }

@@ -18,6 +18,11 @@ function toDate(value: ChatMessage['createdAt']) {
   return null;
 }
 
+/** Soft-deleted or empty-text messages render as a deleted placeholder. */
+export function isChatMessageDeleted(message: ChatMessage) {
+  return message.deleted === true || !message.text?.trim();
+}
+
 function toMillis(value: ChatMessage['createdAt']) {
   const date = toDate(value);
   return date ? date.getTime() : null;
@@ -135,6 +140,7 @@ export function getReadReceiptNamesByMessageId(
 
   messages.forEach((message, index) => {
     if (message.authorUid !== authorUid) return;
+    if (isChatMessageDeleted(message)) return;
 
     Object.entries(message.seenBy ?? {}).forEach(([uid, value]) => {
       if (uid === authorUid) return;
