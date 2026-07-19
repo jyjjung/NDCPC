@@ -3,7 +3,6 @@
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthProvider';
 import { Button } from '@/components/ui/button';
@@ -19,39 +18,59 @@ import {
 import { useState } from 'react';
 import { useTranslation } from '@/context/LocaleProvider';
 
-export function SignInForm() {
-  const router = useRouter();
-  const { signIn } = useAuth();
+export function ForgotPasswordForm() {
+  const { resetPassword } = useAuth();
   const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sent, setSent] = useState(false);
 
   const formSchema = z.object({
     email: z.string().email(t('auth.emailInvalid')),
-    password: z.string().min(1, t('auth.passwordRequired')),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '' },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     setError(null);
     try {
-      await signIn(values.email, values.password);
-      router.replace('/');
-    } catch {
-      setError(t('auth.signInFailed'));
+      await resetPassword(values.email);
+      setSent(true);
+    } catch (err) {
+      const code =
+        err && typeof err === 'object' && 'code' in err ? String(err.code) : '';
+      // Avoid revealing whether the email is registered.
+      if (code === 'auth/user-not-found' || code === 'auth/invalid-email') {
+        setSent(true);
+      } else {
+        setError(t('auth.resetFailed'));
+      }
     } finally {
       setIsSubmitting(false);
     }
   }
 
+  if (sent) {
+    return (
+      <div className="space-y-4">
+        <p className="text-sm text-muted-foreground">{t('auth.resetEmailSent')}</p>
+        <p className="text-center text-sm text-muted-foreground">
+          <Link href="/sign-in" className="text-primary hover:underline">
+            {t('auth.backToSignIn')}
+          </Link>
+        </p>
+      </div>
+    );
+  }
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <p className="text-sm text-muted-foreground">{t('auth.forgotPasswordDescription')}</p>
         <FormField
           control={form.control}
           name="email"
@@ -65,35 +84,13 @@ export function SignInForm() {
             </FormItem>
           )}
         />
-        <FormField
-          control={form.control}
-          name="password"
-          render={({ field }) => (
-            <FormItem>
-              <div className="flex items-center justify-between gap-2">
-                <FormLabel>{t('auth.password')}</FormLabel>
-                <Link
-                  href="/forgot-password"
-                  className="text-sm text-primary hover:underline"
-                >
-                  {t('auth.forgotPassword')}
-                </Link>
-              </div>
-              <FormControl>
-                <Input type="password" autoComplete="current-password" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         {error && <p className="text-sm font-medium text-destructive">{error}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? '…' : t('common.signIn')}
+          {isSubmitting ? '…' : t('auth.sendResetLink')}
         </Button>
         <p className="text-center text-sm text-muted-foreground">
-          {t('auth.noAccount')}{' '}
-          <Link href="/sign-up" className="text-primary hover:underline">
-            {t('auth.createAccount')}
+          <Link href="/sign-in" className="text-primary hover:underline">
+            {t('auth.backToSignIn')}
           </Link>
         </p>
       </form>

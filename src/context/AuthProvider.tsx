@@ -12,6 +12,7 @@ import {
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signOut,
   updateProfile,
@@ -35,6 +36,7 @@ interface AuthContextType {
   isBootstrapAdmin: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
   signOutUser: () => Promise<void>;
 }
 
@@ -91,6 +93,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [auth, firestore]
   );
 
+  const resetPassword = useCallback(
+    async (email: string) => {
+      await sendPasswordResetEmail(auth, email);
+    },
+    [auth]
+  );
+
   const signOutUser = useCallback(async () => {
     await signOut(auth);
     toast({ title: t('auth.signedOut') });
@@ -107,9 +116,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isBootstrapAdmin,
       signIn,
       signUp,
+      resetPassword,
       signOutUser,
     }),
-    [user, profile, isLoading, isApproved, isAdmin, isBootstrapAdmin, signIn, signUp, signOutUser]
+    [
+      user,
+      profile,
+      isLoading,
+      isApproved,
+      isAdmin,
+      isBootstrapAdmin,
+      signIn,
+      signUp,
+      resetPassword,
+      signOutUser,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

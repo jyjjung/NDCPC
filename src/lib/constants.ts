@@ -4,6 +4,7 @@ export const PUBLIC_PATHS = [
   '/welcome',
   '/sign-in',
   '/sign-up',
+  '/forgot-password',
   '/privacy',
   '/how-it-works',
 ] as const;

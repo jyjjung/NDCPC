@@ -64,6 +64,14 @@ export const translations = {
     'auth.haveAccount': 'Already have an account?',
     'auth.signInFailed': 'Could not sign in. Check your email and password.',
     'auth.signUpFailed': 'Could not create account. Try a different email.',
+    'auth.forgotPassword': 'Forgot password?',
+    'auth.forgotPasswordDescription':
+      'Enter your email and we will send you a link to reset your password.',
+    'auth.sendResetLink': 'Send reset link',
+    'auth.resetEmailSent':
+      'If an account exists for that email, we sent a password reset link. Check your inbox.',
+    'auth.resetFailed': 'Could not send a reset link. Try again.',
+    'auth.backToSignIn': 'Back to sign in',
     'auth.pendingTitle': 'Waiting for approval',
     'auth.pendingDescription':
       'Your account was created. A church admin will review and approve it before you can use the app.',
@@ -405,6 +413,14 @@ export const translations = {
     'auth.haveAccount': '이미 계정이 있으신가요?',
     'auth.signInFailed': '로그인하지 못했어요. 이메일과 비밀번호를 확인해 주세요.',
     'auth.signUpFailed': '계정을 만들지 못했어요. 다른 이메일을 사용해 보세요.',
+    'auth.forgotPassword': '비밀번호를 잊으셨나요?',
+    'auth.forgotPasswordDescription':
+      '이메일을 입력하시면 비밀번호 재설정 링크를 보내 드려요.',
+    'auth.sendResetLink': '재설정 링크 보내기',
+    'auth.resetEmailSent':
+      '해당 이메일로 계정이 있으면 비밀번호 재설정 링크를 보냈어요. 메일함을 확인해 주세요.',
+    'auth.resetFailed': '재설정 링크를 보내지 못했어요. 다시 시도해 주세요.',
+    'auth.backToSignIn': '로그인으로 돌아가기',
     'auth.pendingTitle': '승인 대기 중',
     'auth.pendingDescription':
       '계정이 생성됐어요. 교회 관리자가 승인하면 앱을 사용할 수 있어요.',
