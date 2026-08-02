@@ -184,8 +184,8 @@ export function ChatRoom() {
       await updateDoc(messageRef, {
         deleted: true,
         text: '',
-        ...(message.replyTo ? { replyTo: deleteField() } : {}),
-        ...(message.reactions ? { reactions: deleteField() } : {}),
+        replyTo: deleteField(),
+        reactions: deleteField(),
       });
       if (replyTo?.id === message.id) setReplyTo(null);
       toast({ title: t('toast.deleted') });

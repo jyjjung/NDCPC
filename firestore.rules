@@ -50,6 +50,10 @@ service cloud.firestore {
     match /chatMessages/{messageId} {
       allow read: if isApproved();
 
+      function isChatAuthor() {
+        return resource.data.authorUid == request.auth.uid;
+      }
+
       function chatCoreUnchanged() {
         return request.resource.data.authorUid == resource.data.authorUid
           && request.resource.data.text == resource.data.text
@@ -59,16 +63,16 @@ service cloud.firestore {
           && request.resource.data.get('deleted', false) == resource.data.get('deleted', false);
       }
 
+      // Authors may soft-delete their own message (tombstone).
+      // Only deleted/text/replyTo/reactions may change; identity fields stay fixed.
       function isAuthorSoftDelete() {
-        return resource.data.authorUid == request.auth.uid
+        return isChatAuthor()
           && resource.data.get('deleted', false) != true
           && request.resource.data.deleted == true
           && request.resource.data.authorUid == resource.data.authorUid
           && request.resource.data.authorName == resource.data.authorName
           && request.resource.data.createdAt == resource.data.createdAt
           && request.resource.data.text == ''
-          && !('replyTo' in request.resource.data)
-          && !('reactions' in request.resource.data)
           && request.resource.data.diff(resource.data).affectedKeys()
             .hasOnly(['deleted', 'text', 'replyTo', 'reactions']);
       }
@@ -97,7 +101,8 @@ service cloud.firestore {
         || isAuthorSoftDelete()
       );
 
-      allow delete: if isApproved() && resource.data.authorUid == request.auth.uid;
+      // Authors may hard-delete their own messages.
+      allow delete: if isApproved() && isChatAuthor();
     }
 
     match /users/{userId}/fcmTokens/{tokenId} {
