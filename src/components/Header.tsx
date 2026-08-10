@@ -47,7 +47,7 @@ export function Header() {
               <SidebarNav onLinkClick={() => setSheetOpen(false)} />
             </div>
             <div className="mt-auto border-t border-border/40 px-3 py-4">
-              <UserMenu onLinkClick={() => setSheetOpen(false)} />
+              <UserMenu onNavigate={() => setSheetOpen(false)} />
             </div>
           </SheetContent>
         </Sheet>

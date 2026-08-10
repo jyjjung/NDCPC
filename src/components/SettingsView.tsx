@@ -14,8 +14,7 @@ import {
   fixPushNotifications,
   isChatNotificationsEnabled,
   isPushNotificationsEnabled,
-  sendLocalTestNotification,
-  sendServerTestNotification,
+  requestPushVerification,
   updateChatNotificationPref,
 } from '@/lib/messaging';
 import { doc, updateDoc } from 'firebase/firestore';
@@ -98,6 +97,7 @@ export function SettingsView() {
       }
 
       if (result === 'granted') {
+        await requestPushVerification(firestore, user.uid);
         toast({ title: t('settings.pushFixed') });
         return;
       }
@@ -126,18 +126,36 @@ export function SettingsView() {
   const handleTestPush = async () => {
     setIsTestingPush(true);
     try {
-      const local = sendLocalTestNotification(t('settings.testNotificationTitle'), t('settings.testNotificationBody'));
-      if (local) {
-        toast({ title: t('settings.testSent') });
+      const registration = await fixPushNotifications(
+        firebaseApp,
+        firestore,
+        user.uid
+      );
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        setPermission(Notification.permission);
+      }
+      if (registration !== 'granted') {
+        if (registration === 'missing_vapid') {
+          toast({ variant: 'destructive', title: t('chat.notificationsMissingVapid') });
+        } else if (registration === 'invalid_vapid') {
+          toast({ variant: 'destructive', title: t('chat.notificationsInvalidVapid') });
+        } else if (registration === 'unsupported') {
+          toast({ variant: 'destructive', title: t('settings.pushUnsupported') });
+        } else {
+          toast({ variant: 'destructive', title: t('chat.notificationsBlocked') });
+        }
         return;
       }
 
-      const idToken = await user.getIdToken();
-      await sendServerTestNotification(idToken);
+      await requestPushVerification(firestore, user.uid);
       toast({ title: t('settings.testSent') });
     } catch (error) {
       console.error(error);
-      toast({ variant: 'destructive', title: t('settings.testFailed') });
+      toast({
+        variant: 'destructive',
+        title: t('settings.testFailed'),
+        description: error instanceof Error ? error.message : String(error),
+      });
     } finally {
       setIsTestingPush(false);
     }

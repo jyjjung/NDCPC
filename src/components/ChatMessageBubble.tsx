@@ -8,6 +8,7 @@ import { getMessageGroupPosition, isChatMessageDeleted } from '@/lib/chat-messag
 import type { TranslationKey } from '@/i18n/translations';
 import { cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { ChatLinkifiedText } from '@/components/ChatLinkifiedText';
 
 export const CHAT_REACTIONS = ['❤️', '👍', '😂', '😮', '😢', '🙏'] as const;
 
@@ -102,10 +103,16 @@ export function ChatMessageBubble({
   onDelete,
   t,
 }: ChatMessageBubbleProps) {
+  const [youtubePlaying, setYoutubePlaying] = useState(false);
   const isDeleted = isChatMessageDeleted(message);
   const reactionEntries = isDeleted
     ? []
     : Object.entries(message.reactions ?? {}).filter(([, uids]) => uids.length > 0);
+  const youtubeId = !isDeleted
+    ? message.text?.match(
+        /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/i
+      )?.[1]
+    : undefined;
 
   return (
     <div
@@ -152,10 +159,46 @@ export function ChatMessageBubble({
                   <p className="truncate opacity-80">{message.replyTo.text}</p>
                 </div>
               ) : null}
-              <span className="whitespace-pre-wrap break-words">{message.text}</span>
+              {message.text ? (
+                <ChatLinkifiedText text={message.text} isOwn={isOwn} />
+              ) : null}
             </>
           )}
         </div>
+
+        {youtubeId ? (
+          <div className="mt-1 aspect-video w-[min(18rem,75vw)] overflow-hidden rounded-xl border border-border/50 bg-black">
+            {youtubePlaying ? (
+              <iframe
+                width="100%"
+                height="100%"
+                src={`https://www.youtube.com/embed/${youtubeId}`}
+                title="YouTube video player"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setYoutubePlaying(true)}
+                className="relative block h-full w-full"
+                aria-label="Play YouTube video"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`https://img.youtube.com/vi/${youtubeId}/hqdefault.jpg`}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+                <span className="absolute inset-0 flex items-center justify-center bg-black/25">
+                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-red-600 text-white shadow-lg">
+                    ▶
+                  </span>
+                </span>
+              </button>
+            )}
+          </div>
+        ) : null}
 
         {reactionEntries.length > 0 ? (
           <div
@@ -250,7 +293,21 @@ export function ChatMessageGroupView({
         </p>
       ) : null}
 
-      <div className={cn('flex px-1', isOwn ? 'justify-end' : 'justify-start')}>
+      <div className={cn('flex items-end gap-2 px-1', isOwn ? 'justify-end' : 'justify-start')}>
+        {!isOwn ? (
+          <div className="mb-0.5 flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-border/50 bg-muted text-[10px] font-semibold text-muted-foreground">
+            {firstMessage.authorPhotoURL ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={firstMessage.authorPhotoURL}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              firstMessage.authorName.trim().charAt(0).toUpperCase()
+            )}
+          </div>
+        ) : null}
         <div
           className={cn(
             'flex w-max min-w-0 max-w-[85%] flex-col gap-1.5',

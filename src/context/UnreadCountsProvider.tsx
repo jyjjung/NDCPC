@@ -100,6 +100,20 @@ export function UnreadCountsProvider({ children }: { children: ReactNode }) {
     [chatUnread, announcementsUnread]
   );
 
+  useEffect(() => {
+    const totalUnread = chatUnread + announcementsUnread;
+    const badgeNavigator = navigator as Navigator & {
+      setAppBadge?: (count: number) => Promise<void>;
+      clearAppBadge?: () => Promise<void>;
+    };
+
+    if (totalUnread > 0) {
+      void badgeNavigator.setAppBadge?.(totalUnread).catch(() => {});
+    } else {
+      void badgeNavigator.clearAppBadge?.().catch(() => {});
+    }
+  }, [announcementsUnread, chatUnread]);
+
   return (
     <UnreadCountsContext.Provider value={value}>{children}</UnreadCountsContext.Provider>
   );

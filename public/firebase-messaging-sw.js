@@ -13,14 +13,24 @@ firebase.initializeApp({
 const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
-  const title = payload.notification?.title || 'NDC Preschool Church';
-  const body = payload.notification?.body || 'New chat message';
+  const title = payload.data?.title || payload.notification?.title || 'NDC Preschool Church';
+  const body = payload.data?.body || payload.notification?.body || 'New chat message';
   const url = payload.data?.url || '/chat';
+  const badgeCount = Number.parseInt(payload.data?.badge || '0', 10);
+
+  if ('setAppBadge' in navigator) {
+    if (badgeCount > 0) {
+      navigator.setAppBadge(badgeCount).catch(() => {});
+    } else {
+      navigator.clearAppBadge().catch(() => {});
+    }
+  }
 
   self.registration.showNotification(title, {
     body,
-    icon: '/icons/icon-192.png',
+    icon: payload.data?.icon || '/icons/icon-192.png',
     badge: '/icons/icon-48.png',
+    tag: payload.data?.tag || 'ndcpc-notification',
     data: { url },
   });
 });

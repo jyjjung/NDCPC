@@ -4,6 +4,7 @@ import { AuthGate } from '@/components/AuthGate';
 import { Header } from '@/components/Header';
 import { Sidebar } from '@/components/Sidebar';
 import { Toaster } from '@/components/ui/toaster';
+import { PushNotificationsListener } from '@/components/PushNotificationsListener';
 import { UnreadCountsProvider } from '@/context/UnreadCountsProvider';
 
 export default function AppLayout({
@@ -14,6 +15,7 @@ export default function AppLayout({
   return (
     <AuthGate>
       <UnreadCountsProvider>
+        <PushNotificationsListener />
         <div className="min-h-screen bg-background">
           <Sidebar />
           <div className="flex h-dvh flex-col overflow-hidden sm:pl-56">

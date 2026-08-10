@@ -9,6 +9,7 @@ import { useTranslation } from '@/context/LocaleProvider';
 import {
   registerPushNotifications,
   isPushNotificationsEnabled,
+  requestPushVerification,
 } from '@/lib/messaging';
 import { useToast } from '@/hooks/use-toast';
 
@@ -51,6 +52,7 @@ export function PushNotificationSetup() {
       if (result === 'granted') {
         setStatus('enabled');
         setShowBanner(false);
+        await requestPushVerification(firestore, user.uid);
         toast({ title: t('chat.notificationsEnabled') });
         return;
       }

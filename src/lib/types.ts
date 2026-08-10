@@ -68,6 +68,7 @@ export type ChatMessage = {
   text: string;
   authorUid: string;
   authorName: string;
+  authorPhotoURL?: string;
   createdAt?: { seconds?: number; toDate?: () => Date };
   replyTo?: ChatReplyTo;
   reactions?: Record<string, string[]>;

@@ -161,6 +161,7 @@ export const translations = {
     'chat.seenByNone': 'Delivered',
     'chat.delete': 'Delete message',
     'chat.messageDeleted': 'This message was deleted',
+    'chat.offline': 'You are offline. Messages will be available when you reconnect.',
     'chat.today': 'Today',
     'chat.yesterday': 'Yesterday',
 
@@ -511,6 +512,7 @@ export const translations = {
     'chat.seenByNone': '전송됨',
     'chat.delete': '메시지 삭제',
     'chat.messageDeleted': '삭제된 메시지입니다',
+    'chat.offline': '오프라인 상태입니다. 다시 연결되면 메시지를 사용할 수 있어요.',
     'chat.today': '오늘',
     'chat.yesterday': '어제',
 

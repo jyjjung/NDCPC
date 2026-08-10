@@ -1,12 +1,26 @@
 'use client';
 
 import type { FirebaseApp } from 'firebase/app';
-import { getMessaging, getToken, isSupported, onMessage, type Messaging } from 'firebase/messaging';
-import { doc, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import {
+  deleteToken,
+  getMessaging,
+  getToken,
+  isSupported,
+  onMessage,
+  type Messaging,
+} from 'firebase/messaging';
+import {
+  addDoc,
+  collection,
+  doc,
+  serverTimestamp,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
 import type { NotificationPrefs, UserProfile } from '@/lib/types';
 
-/** Set `NEXT_PUBLIC_PUSH_NOTIFICATIONS_ENABLED=true` to turn push back on. */
+/** Requires `NEXT_PUBLIC_PUSH_NOTIFICATIONS_ENABLED=true` plus a valid VAPID public key. */
 export const PUSH_NOTIFICATIONS_ENABLED =
   process.env.NEXT_PUBLIC_PUSH_NOTIFICATIONS_ENABLED === 'true';
 
@@ -77,7 +91,8 @@ export async function updateChatNotificationPref(
 export async function registerPushNotifications(
   app: FirebaseApp,
   firestore: Firestore,
-  uid: string
+  uid: string,
+  forceRefresh = false
 ): Promise<PushRegistrationResult> {
   if (!PUSH_NOTIFICATIONS_ENABLED) return 'unsupported';
   if (!VAPID_KEY) return 'missing_vapid';
@@ -89,11 +104,16 @@ export async function registerPushNotifications(
   const permission = await Notification.requestPermission();
   if (permission !== 'granted') return 'denied';
 
-  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
-  await navigator.serviceWorker.ready;
+  const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+    scope: '/',
+  });
+  await registration.update();
 
   let token: string | null = null;
   try {
+    if (forceRefresh) {
+      await deleteToken(messaging).catch(() => false);
+    }
     token = await getToken(messaging, {
       vapidKey: VAPID_KEY,
       serviceWorkerRegistration: registration,
@@ -127,49 +147,32 @@ export async function fixPushNotifications(
     return 'denied';
   }
 
-  return registerPushNotifications(app, firestore, uid);
+  return registerPushNotifications(app, firestore, uid, true);
 }
 
-export function sendLocalTestNotification(title: string, body: string) {
-  if (!PUSH_NOTIFICATIONS_ENABLED) return false;
-  if (typeof window === 'undefined' || !('Notification' in window)) {
-    return false;
-  }
-
-  if (Notification.permission !== 'granted') {
-    return false;
-  }
-
-  new Notification(title, {
-    body,
-    icon: '/icons/icon-192.png',
-  });
-
-  return true;
-}
-
-export async function sendServerTestNotification(idToken: string) {
+export async function requestPushVerification(firestore: Firestore, uid: string) {
   if (!PUSH_NOTIFICATIONS_ENABLED) {
     throw new Error('Push notifications are disabled');
   }
 
-  const response = await fetch('/api/notifications/test', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${idToken}`,
-    },
+  await addDoc(collection(firestore, 'pushTests'), {
+    userId: uid,
+    createdAt: serverTimestamp(),
   });
-
-  if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(payload?.error ?? 'Test notification failed');
-  }
 }
 
 export function listenForForegroundMessages(
   app: FirebaseApp,
   onPayload: (payload: {
     notification?: { title?: string; body?: string };
+    data?: {
+      title?: string;
+      body?: string;
+      url?: string;
+      badge?: string;
+      tag?: string;
+      icon?: string;
+    };
   }) => void,
   enabled = true
 ) {

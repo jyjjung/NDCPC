@@ -3,12 +3,16 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/context/AuthProvider';
 import { useFirebaseApp, useFirestore } from '@/firebase';
-import { listenForForegroundMessages, registerPushNotifications, isChatNotificationsEnabled, isPushNotificationsEnabled } from '@/lib/messaging';
+import {
+  isPushNotificationsEnabled,
+  listenForForegroundMessages,
+  registerPushNotifications,
+} from '@/lib/messaging';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LocaleProvider';
 
 export function PushNotificationsListener() {
-  const { user, isApproved, profile } = useAuth();
+  const { user, isApproved } = useAuth();
   const firebaseApp = useFirebaseApp();
   const firestore = useFirestore();
   const { toast } = useToast();
@@ -17,21 +21,62 @@ export function PushNotificationsListener() {
   useEffect(() => {
     if (!isPushNotificationsEnabled()) return;
     if (!user || !isApproved || typeof window === 'undefined') return;
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
 
-    void registerPushNotifications(firebaseApp, firestore, user.uid);
+    if ('Notification' in window && Notification.permission === 'granted') {
+      void registerPushNotifications(firebaseApp, firestore, user.uid).catch((error) => {
+        console.error('Push token registration failed:', error);
+      });
+    }
 
     return listenForForegroundMessages(
       firebaseApp,
       (payload) => {
+        const title =
+          payload.data?.title ?? payload.notification?.title ?? t('chat.newMessage');
+        const body = payload.data?.body ?? payload.notification?.body;
+        const url = payload.data?.url ?? '/chat';
+
+        if ('serviceWorker' in navigator && Notification.permission === 'granted') {
+          void navigator.serviceWorker
+            .getRegistration('/')
+            .then((registration) =>
+              registration?.showNotification(title, {
+              body,
+              icon: payload.data?.icon ?? '/icons/icon-192.png',
+              badge: '/icons/icon-48.png',
+              tag: payload.data?.tag ?? 'ndcpc-notification',
+              data: { url },
+              })
+            );
+        }
+
         toast({
-          title: payload.notification?.title ?? t('chat.newMessage'),
-          description: payload.notification?.body,
+          title,
+          description: body,
         });
       },
-      isChatNotificationsEnabled(profile)
+      true
     );
-  }, [user, isApproved, profile, firebaseApp, firestore, t, toast]);
+  }, [user, isApproved, firebaseApp, firestore, t, toast]);
+
+  useEffect(() => {
+    if (!user || !isApproved || !isPushNotificationsEnabled()) return;
+
+    const refreshToken = () => {
+      if (
+        document.visibilityState === 'visible' &&
+        'Notification' in window &&
+        Notification.permission === 'granted'
+      ) {
+        void registerPushNotifications(firebaseApp, firestore, user.uid).catch((error) => {
+          console.error('Push token refresh failed:', error);
+        });
+      }
+    };
+
+    document.addEventListener('visibilitychange', refreshToken);
+    return () => document.removeEventListener('visibilitychange', refreshToken);
+  }, [firebaseApp, firestore, isApproved, user]);
 
   return null;
 }
