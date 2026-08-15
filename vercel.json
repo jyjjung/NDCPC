@@ -1,8 +1,44 @@
 {
-  "crons": [
+  "redirects": [
     {
-      "path": "/api/cron/roster-reminders",
-      "schedule": "0 9 * * *"
+      "source": "/sign-in",
+      "destination": "https://ndccommunity.vercel.app/login?next=/ndcpc",
+      "permanent": true
+    },
+    {
+      "source": "/sign-up",
+      "destination": "https://ndccommunity.vercel.app/signup",
+      "permanent": true
+    },
+    {
+      "source": "/forgot-password",
+      "destination": "https://ndccommunity.vercel.app/forgot-password",
+      "permanent": true
+    },
+    {
+      "source": "/pending",
+      "destination": "https://ndccommunity.vercel.app/pending-approval",
+      "permanent": true
+    },
+    {
+      "source": "/admin/login",
+      "destination": "https://ndccommunity.vercel.app/login?next=/ndcpc",
+      "permanent": true
+    },
+    {
+      "source": "/settings",
+      "destination": "https://ndccommunity.vercel.app/accounts",
+      "permanent": true
+    },
+    {
+      "source": "/privacy",
+      "destination": "https://ndccommunity.vercel.app/privacy",
+      "permanent": true
+    },
+    {
+      "source": "/(.*)",
+      "destination": "https://ndccommunity.vercel.app/ndcpc/$1",
+      "permanent": true
     }
   ]
 }
