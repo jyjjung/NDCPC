@@ -45,12 +45,12 @@ export function SetlistManager({ createOpen, onCreateOpenChange }: SetlistManage
 
   const setlistsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'setlists'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'ndcpcSetlists'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'resources'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'ndcpcResources'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
   const { data: setlists, isLoading: setlistsLoading } = useCollection<Setlist>(setlistsQuery);
@@ -63,7 +63,7 @@ export function SetlistManager({ createOpen, onCreateOpenChange }: SetlistManage
   const handleDelete = async (setlistId: string) => {
     if (!firestore) return;
     try {
-      await deleteDoc(doc(firestore, 'setlists', setlistId));
+      await deleteDoc(doc(firestore, 'ndcpcSetlists', setlistId));
       toast({ title: t('toast.deleted') });
     } catch (error) {
       console.error(error);

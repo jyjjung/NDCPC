@@ -55,13 +55,13 @@ export function AddAnnouncementForm({ announcement, onSuccess }: AddAnnouncement
 
     try {
       if (isEditing && announcement) {
-        await updateDoc(doc(firestore, 'announcements', announcement.id), {
+        await updateDoc(doc(firestore, 'ndcpcAnnouncements', announcement.id), {
           title: values.title,
           content: values.content,
         });
         toast({ title: t('common.saved') });
       } else {
-        await addDoc(collection(firestore, 'announcements'), {
+        await addDoc(collection(firestore, 'ndcpcAnnouncements'), {
           title: values.title,
           content: values.content,
           date: serverTimestamp(),

@@ -52,12 +52,12 @@ export function PrayerTopicForm({ prayerTopic, onSuccess }: PrayerTopicFormProps
 
     try {
       if (isEditing && prayerTopic) {
-        await updateDoc(doc(firestore, 'prayerTopics', prayerTopic.id), {
+        await updateDoc(doc(firestore, 'ndcpcPrayerTopics', prayerTopic.id), {
           topic: values.topic,
         });
         toast({ title: t('common.saved') });
       } else {
-        await addDoc(collection(firestore, 'prayerTopics'), {
+        await addDoc(collection(firestore, 'ndcpcPrayerTopics'), {
           topic: values.topic,
           date: serverTimestamp(),
         });

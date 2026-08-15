@@ -1,5 +1,6 @@
 import {
   addDoc,
+  arrayUnion,
   collection,
   deleteDoc,
   deleteField,
@@ -13,6 +14,7 @@ import type { Firestore } from 'firebase/firestore';
 import type { User } from 'firebase/auth';
 import { ADMIN_EMAIL } from '@/lib/constants';
 import { areNamesSimilar } from '@/lib/name-similarity';
+import { communityProfileWrite, mapCommunityUserProfile } from '@/lib/community-profile';
 import type { UserProfile, UserRole, Volunteer } from '@/lib/types';
 
 export type VolunteerLinkOption = 'merge' | 'delete_old' | 'keep_both';
@@ -49,33 +51,37 @@ export async function ensureUserProfile(
     const profile = {
       uid: user.uid,
       email,
-      displayName: resolvedName,
-      approved: isBootstrapAdmin,
-      role: isBootstrapAdmin ? 'admin' : 'member',
-      notificationPrefs: { chat: true },
+      ...communityProfileWrite(resolvedName, isBootstrapAdmin),
       createdAt: serverTimestamp(),
     };
     await setDoc(userRef, profile);
-    return { id: user.uid, ...profile } as UserProfile;
+    return mapCommunityUserProfile(user.uid, profile);
   }
 
-  const data = snapshot.data() as Omit<UserProfile, 'id'>;
-  if (isBootstrapAdmin && (data.role !== 'admin' || !data.approved)) {
-    await updateDoc(userRef, { role: 'admin', approved: true });
-    return { id: user.uid, ...data, role: 'admin', approved: true };
+  const data = snapshot.data();
+  const mapped = mapCommunityUserProfile(user.uid, data);
+
+  if (isBootstrapAdmin && (mapped.role !== 'admin' || !mapped.approved)) {
+    await updateDoc(userRef, { ndcpcRole: 'admin', isApproved: true, 'access.ndcpc': true });
+    return { ...mapped, role: 'admin', approved: true };
   }
 
   const preferredName = trimmedInput || authName;
   if (
     preferredName &&
-    preferredName !== data.displayName &&
-    (trimmedInput || isPlaceholderDisplayName(data.displayName ?? '', email))
+    preferredName !== mapped.displayName &&
+    (trimmedInput || isPlaceholderDisplayName(mapped.displayName ?? '', email))
   ) {
-    await updateDoc(userRef, { displayName: preferredName });
-    return { id: user.uid, ...data, displayName: preferredName };
+    const write = communityProfileWrite(preferredName, false);
+    await updateDoc(userRef, {
+      firstName: write.firstName,
+      lastName: write.lastName,
+      displayName: write.displayName,
+    });
+    return { ...mapped, displayName: write.displayName };
   }
 
-  return { id: user.uid, ...data };
+  return mapped;
 }
 
 export function findSimilarVolunteers(name: string, volunteers: Volunteer[]) {
@@ -92,7 +98,7 @@ export async function linkVolunteerForUser(
   if (!name) return;
 
   if (option === 'merge' && existingVolunteer) {
-    await updateDoc(doc(firestore, 'volunteers', existingVolunteer.id), {
+    await updateDoc(doc(firestore, 'ndcpcVolunteers', existingVolunteer.id), {
       name,
       userId: profile.uid,
       email: profile.email,
@@ -101,10 +107,10 @@ export async function linkVolunteerForUser(
   }
 
   if (option === 'delete_old' && existingVolunteer) {
-    await deleteDoc(doc(firestore, 'volunteers', existingVolunteer.id));
+    await deleteDoc(doc(firestore, 'ndcpcVolunteers', existingVolunteer.id));
   }
 
-  await addDoc(collection(firestore, 'volunteers'), {
+  await addDoc(collection(firestore, 'ndcpcVolunteers'), {
     name,
     userId: profile.uid,
     email: profile.email,
@@ -117,7 +123,13 @@ export async function approveUser(
   volunteers: Volunteer[],
   option?: VolunteerLinkOption
 ) {
-  await updateDoc(doc(firestore, 'users', profile.uid), { approved: true });
+  const userRef = doc(firestore, 'users', profile.uid);
+  const snap = await getDoc(userRef);
+  const access = { ...(snap.data()?.access ?? {}), ndcpc: true };
+  await updateDoc(userRef, {
+    isApproved: true,
+    access,
+  });
 
   const similar = findSimilarVolunteers(profile.displayName, volunteers);
   const linkedVolunteer = volunteers.find((volunteer) => volunteer.userId === profile.uid);
@@ -137,7 +149,7 @@ export async function approveUser(
 }
 
 export async function setUserRole(firestore: Firestore, uid: string, role: UserRole) {
-  await updateDoc(doc(firestore, 'users', uid), { role });
+  await updateDoc(doc(firestore, 'users', uid), { ndcpcRole: role });
 }
 
 export function getLinkedVolunteer(profile: UserProfile, volunteers: Volunteer[]) {
@@ -159,11 +171,16 @@ export async function updateMemberDisplayName(
     throw new Error('Display name too short');
   }
 
-  await updateDoc(doc(firestore, 'users', uid), { displayName: trimmed });
+  const write = communityProfileWrite(trimmed, false);
+  await updateDoc(doc(firestore, 'users', uid), {
+    firstName: write.firstName,
+    lastName: write.lastName,
+    displayName: write.displayName,
+  });
 
   const linkedVolunteer = volunteers.find((volunteer) => volunteer.userId === uid);
   if (linkedVolunteer) {
-    await updateDoc(doc(firestore, 'volunteers', linkedVolunteer.id), { name: trimmed });
+    await updateDoc(doc(firestore, 'ndcpcVolunteers', linkedVolunteer.id), { name: trimmed });
   }
 }
 
@@ -181,13 +198,13 @@ export async function linkUserToVolunteer(
     (entry) => entry.userId === profile.uid && entry.id !== volunteer.id
   );
   if (existingLink) {
-    await updateDoc(doc(firestore, 'volunteers', existingLink.id), {
+    await updateDoc(doc(firestore, 'ndcpcVolunteers', existingLink.id), {
       userId: deleteField(),
       email: deleteField(),
     });
   }
 
-  await updateDoc(doc(firestore, 'volunteers', volunteer.id), {
+  await updateDoc(doc(firestore, 'ndcpcVolunteers', volunteer.id), {
     userId: profile.uid,
     email: profile.email,
     name: profile.displayName.trim() || volunteer.name,
@@ -195,7 +212,7 @@ export async function linkUserToVolunteer(
 }
 
 export async function unlinkUserFromVolunteer(firestore: Firestore, volunteer: Volunteer) {
-  await updateDoc(doc(firestore, 'volunteers', volunteer.id), {
+  await updateDoc(doc(firestore, 'ndcpcVolunteers', volunteer.id), {
     userId: deleteField(),
     email: deleteField(),
   });
@@ -207,6 +224,12 @@ export async function approveAndLinkUser(
   volunteer: Volunteer,
   volunteers: Volunteer[]
 ) {
-  await updateDoc(doc(firestore, 'users', profile.uid), { approved: true });
+  const userRef = doc(firestore, 'users', profile.uid);
+  const snap = await getDoc(userRef);
+  const access = { ...(snap.data()?.access ?? {}), ndcpc: true };
+  await updateDoc(userRef, {
+    isApproved: true,
+    access,
+  });
   await linkUserToVolunteer(firestore, profile, volunteer, volunteers);
 }

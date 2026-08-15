@@ -42,7 +42,7 @@ export function ScheduleManager() {
 
   const schedulesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'schedules'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'ndcpcSchedules'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const { data: schedules, isLoading } = useCollection<Schedule>(schedulesQuery);
@@ -63,7 +63,7 @@ export function ScheduleManager() {
       return;
     }
     try {
-      await deleteDoc(doc(firestore, 'schedules', scheduleId));
+      await deleteDoc(doc(firestore, 'ndcpcSchedules', scheduleId));
       toast({ title: t('toast.deleted') });
     } catch (error) {
       console.error('Error deleting schedule: ', error);

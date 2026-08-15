@@ -17,15 +17,8 @@ export async function POST(request: NextRequest) {
     const db = getAdminFirestore();
     const messaging = getAdminMessaging();
 
-    const tokensSnap = await db
-      .collection('users')
-      .doc(decoded.uid)
-      .collection('fcmTokens')
-      .get();
-
-    const tokens = tokensSnap.docs
-      .map((doc) => doc.data().token as string | undefined)
-      .filter((token): token is string => Boolean(token));
+    const userSnap = await db.collection('users').doc(decoded.uid).get();
+    const tokens = [...new Set((userSnap.data()?.fcmTokens as string[] | undefined) ?? [])].filter(Boolean);
 
     if (tokens.length === 0) {
       return NextResponse.json({ error: 'No push tokens found. Use Fix push notifications first.' }, { status: 400 });

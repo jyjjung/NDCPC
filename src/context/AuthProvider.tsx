@@ -23,6 +23,7 @@ import { useAuth as useFirebaseAuth, useFirestore } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/context/LocaleProvider';
 import { ensureUserProfile, isBootstrapAdminEmail } from '@/lib/users';
+import { mapCommunityUserProfile } from '@/lib/community-profile';
 import type { UserProfile } from '@/lib/types';
 import { useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from 'firebase/firestore';
@@ -56,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return doc(firestore, 'users', user.uid);
   }, [firestore, user]);
 
-  const { data: profileDoc, isLoading: profileLoading } = useDoc<UserProfile>(profileRef);
+  const { data: profileDoc, isLoading: profileLoading } = useDoc<Omit<UserProfile, 'id'>>(profileRef);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (nextUser) => {
@@ -69,7 +70,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return unsubscribe;
   }, [auth, firestore]);
 
-  const profile = profileDoc;
+  const profile = profileDoc && user ? mapCommunityUserProfile(user.uid, profileDoc) : null;
   const isLoading = authLoading || (!!user && profileLoading);
   const isApproved = !!profile?.approved;
   const isAdmin = isApproved && profile?.role === 'admin';

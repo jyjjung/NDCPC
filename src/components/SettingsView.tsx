@@ -17,7 +17,7 @@ import {
   requestPushVerification,
   updateChatNotificationPref,
 } from '@/lib/messaging';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
@@ -56,12 +56,20 @@ export function SettingsView() {
 
     setIsUploadingPhoto(true);
     try {
-      const storagePath = `profiles/${user.uid}/avatar-${Date.now()}.jpg`;
-      const storageRef = ref(storage, storagePath);
+      const storagePath = `${user.uid}_ndcpc_${Date.now()}.jpg`;
+      const storageRef = ref(storage, `avatars/${storagePath}`);
       await uploadBytes(storageRef, file);
       const downloadUrl = await getDownloadURL(storageRef);
 
-      await updateDoc(doc(firestore, 'users', user.uid), { photoURL: downloadUrl });
+      const userRef = doc(firestore, 'users', user.uid);
+      const snap = await getDoc(userRef);
+      const existingAvatars = (snap.data()?.avatars as Record<string, unknown> | undefined) ?? {};
+      await updateDoc(userRef, {
+        avatars: {
+          ...existingAvatars,
+          ndcpc: { mode: 'image', imageUrl: downloadUrl, cosmeticTier: 'none' },
+        },
+      });
       await updateProfile(user, { photoURL: downloadUrl });
 
       toast({ title: t('settings.photoUpdated') });

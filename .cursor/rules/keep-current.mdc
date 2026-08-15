@@ -1,0 +1,18 @@
+---
+description: NDCPC archive — identity moved to cell-abca4 community hub
+alwaysApply: true
+---
+
+# Keep current
+
+NDCPC app code is being merged into **cell-master** as `/ndcpc/*` on the community hub.
+
+- Canonical host: **`https://ndccommunity.vercel.app`**
+- Shared Firebase: **`cell-abca4`** (client config + messaging SW updated)
+- Collections: namespaced `ndcpc*` (see cell-master `src/lib/ndcpc/collections.ts`)
+- FCM tokens: `users.fcmTokens[]` (not subcollection)
+- Chat push: Cloud Function `notifyChatMessage` on `ndcpcChatMessages/{messageId}`
+- User ops: **`/users`** on the community hub (standalone `/admin` approval still works via `isNdcpcAdmin` rules)
+- Legacy Firebase project `studio-7483951484-e5df7` — read-only after migration cutover
+
+Do not add new NDCPC-only auth or signup flows here; port features into cell-master under `/ndcpc`.

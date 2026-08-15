@@ -24,17 +24,17 @@ export function DashboardView() {
 
   const schedulesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'schedules'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'ndcpcSchedules'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const setlistsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'setlists'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'ndcpcSetlists'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'resources'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'ndcpcResources'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
   const { data: schedules, isLoading: schedulesLoading } =

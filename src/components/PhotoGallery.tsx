@@ -48,7 +48,7 @@ export function PhotoGallery() {
 
   const photosQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'photos'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'ndcpcPhotos'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
   const { data: photos, isLoading } = useCollection<Photo>(photosQuery, {
@@ -70,7 +70,7 @@ export function PhotoGallery() {
           await uploadBytes(storageRef, file);
           const downloadUrl = await getDownloadURL(storageRef);
 
-          const docRef = await addDoc(collection(firestore, 'photos'), {
+          const docRef = await addDoc(collection(firestore, 'ndcpcPhotos'), {
             storagePath,
             downloadUrl,
             uploadedBy: user.uid,
@@ -106,7 +106,7 @@ export function PhotoGallery() {
 
     setIsSavingCaption(true);
     try {
-      await updateDoc(doc(firestore, 'photos', captionDialog.photoId), {
+      await updateDoc(doc(firestore, 'ndcpcPhotos', captionDialog.photoId), {
         caption: captionDialog.caption.trim(),
       });
       setCaptionDialog(null);
@@ -126,7 +126,7 @@ export function PhotoGallery() {
       if (photo.storagePath) {
         await deleteObject(ref(storage, photo.storagePath));
       }
-      await deleteDoc(doc(firestore, 'photos', photo.id));
+      await deleteDoc(doc(firestore, 'ndcpcPhotos', photo.id));
       toast({ title: t('photos.deleted') });
     } catch (error) {
       console.error(error);

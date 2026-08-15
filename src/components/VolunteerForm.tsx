@@ -36,7 +36,7 @@ export function VolunteerForm({ onSuccess }: { onSuccess: () => void }) {
     if (!firestore) return;
 
     try {
-      await addDoc(collection(firestore, 'volunteers'), values);
+      await addDoc(collection(firestore, 'ndcpcVolunteers'), values);
       toast({ title: t('common.added') });
       form.reset();
       onSuccess();

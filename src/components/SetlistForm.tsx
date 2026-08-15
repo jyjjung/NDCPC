@@ -145,7 +145,7 @@ export function SetlistForm({ setlist, onSuccess }: SetlistFormProps) {
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'resources'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'ndcpcResources'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
   const { data: resources } = useCollection<Resource>(resourcesQuery);
@@ -209,10 +209,10 @@ export function SetlistForm({ setlist, onSuccess }: SetlistFormProps) {
       };
 
       if (isEditing && setlist) {
-        await setDoc(doc(firestore, 'setlists', setlist.id), data);
+        await setDoc(doc(firestore, 'ndcpcSetlists', setlist.id), data);
         toast({ title: t('common.saved') });
       } else {
-        await addDoc(collection(firestore, 'setlists'), {
+        await addDoc(collection(firestore, 'ndcpcSetlists'), {
           ...data,
           createdAt: Timestamp.now(),
         });

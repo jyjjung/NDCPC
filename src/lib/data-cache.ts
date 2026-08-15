@@ -3,12 +3,12 @@
 const STORAGE_PREFIX = 'ndcpc-data-cache:';
 
 export const DATA_CACHE_KEYS = {
-  announcements: 'announcements',
-  volunteers: 'volunteers',
-  prayerTopics: 'prayerTopics',
-  chatMessages: 'chatMessages',
-  photos: 'photos',
-  resources: 'resources',
+  announcements: 'ndcpcAnnouncements',
+  volunteers: 'ndcpcVolunteers',
+  prayerTopics: 'ndcpcPrayerTopics',
+  chatMessages: 'ndcpcChatMessages',
+  photos: 'ndcpcPhotos',
+  resources: 'ndcpcResources',
 } as const;
 
 type CachedTimestamp = { __ts: number };

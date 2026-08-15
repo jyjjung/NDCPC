@@ -57,7 +57,7 @@ export function WorshipFormatForm({ worshipFormat, onSuccess }: WorshipFormatFor
         ...(roles?.length ? { roles } : {}),
       }));
 
-      await setDoc(doc(firestore, 'worshipFormats', WEEKLY_WORSHIP_FORMAT_ID), {
+      await setDoc(doc(firestore, 'ndcpcWorshipFormats', WEEKLY_WORSHIP_FORMAT_ID), {
         items: cleanedItems,
         updatedAt: Timestamp.now(),
       });

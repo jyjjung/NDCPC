@@ -39,7 +39,7 @@ export default function ResourcesPage() {
 
     const batch = writeBatch(firestore);
     selectedResources.forEach((id) => {
-      batch.delete(doc(firestore, 'resources', id));
+      batch.delete(doc(firestore, 'ndcpcResources', id));
     });
 
     try {

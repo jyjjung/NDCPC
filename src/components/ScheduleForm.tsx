@@ -54,7 +54,7 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
 
   const volunteersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'volunteers'), orderBy('name'));
+    return query(collection(firestore, 'ndcpcVolunteers'), orderBy('name'));
   }, [firestore]);
 
   const { data: volunteers } = useCollection<Volunteer>(volunteersQuery);
@@ -92,11 +92,11 @@ export function ScheduleForm({ onSuccess, schedule }: ScheduleFormProps) {
       };
 
       if (schedule?.id) {
-        const scheduleRef = doc(firestore, 'schedules', schedule.id);
+        const scheduleRef = doc(firestore, 'ndcpcSchedules', schedule.id);
         await setDoc(scheduleRef, scheduleData);
         toast({ title: t('common.saved') });
       } else {
-        await addDoc(collection(firestore, 'schedules'), scheduleData);
+        await addDoc(collection(firestore, 'ndcpcSchedules'), scheduleData);
         toast({ title: t('common.added') });
       }
       onSuccess();

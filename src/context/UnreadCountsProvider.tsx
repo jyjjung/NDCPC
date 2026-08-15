@@ -50,7 +50,7 @@ export function UnreadCountsProvider({ children }: { children: ReactNode }) {
   const chatQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(
-      collection(firestore, 'chatMessages'),
+      collection(firestore, 'ndcpcChatMessages'),
       orderBy('createdAt', 'desc'),
       limit(100)
     );
@@ -58,7 +58,7 @@ export function UnreadCountsProvider({ children }: { children: ReactNode }) {
 
   const announcementsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'announcements'), orderBy('date', 'desc'), limit(50));
+    return query(collection(firestore, 'ndcpcAnnouncements'), orderBy('date', 'desc'), limit(50));
   }, [firestore]);
 
   const { data: chatMessages } = useCollection<ChatMessage>(chatQuery);

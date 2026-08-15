@@ -52,7 +52,7 @@ export function MemberManager() {
 
   const volunteersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'volunteers'), orderBy('name'));
+    return query(collection(firestore, 'ndcpcVolunteers'), orderBy('name'));
   }, [firestore]);
 
   const { data: approvedUsers, isLoading: usersLoading } =

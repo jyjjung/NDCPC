@@ -145,7 +145,7 @@ export function AddResourceForm({ initialCategory, onSuccess }: AddResourceFormP
         endSeconds = clip.endSeconds;
       }
 
-      const resourcesCollectionRef = collection(firestore, 'resources');
+      const resourcesCollectionRef = collection(firestore, 'ndcpcResources');
 
       const newResource = {
         title,

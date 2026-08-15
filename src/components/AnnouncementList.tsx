@@ -36,7 +36,7 @@ export function AnnouncementList() {
 
   const announcementsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'announcements'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'ndcpcAnnouncements'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const { data: announcements, isLoading } = useCollection<Announcement>(
@@ -47,7 +47,7 @@ export function AnnouncementList() {
   const handleDelete = async (announcementId: string) => {
     if (!firestore) return;
     try {
-      await deleteDoc(doc(firestore, 'announcements', announcementId));
+      await deleteDoc(doc(firestore, 'ndcpcAnnouncements', announcementId));
       toast({ title: t('toast.deleted') });
     } catch (error) {
       console.error('Error deleting announcement: ', error);

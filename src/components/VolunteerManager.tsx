@@ -29,14 +29,14 @@ export function VolunteerManager() {
 
   const volunteersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'volunteers'), orderBy('name'));
+    return query(collection(firestore, 'ndcpcVolunteers'), orderBy('name'));
   }, [firestore]);
 
   const { data: volunteers, isLoading } = useCollection<Volunteer>(volunteersQuery);
 
   const handleDelete = async (volunteer: Volunteer) => {
     if (!firestore) return;
-    await deleteDoc(doc(firestore, 'volunteers', volunteer.id));
+    await deleteDoc(doc(firestore, 'ndcpcVolunteers', volunteer.id));
   };
 
   return (

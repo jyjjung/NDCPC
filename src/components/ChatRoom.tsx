@@ -56,7 +56,7 @@ export function ChatRoom() {
   const messagesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
     return query(
-      collection(firestore, 'chatMessages'),
+      collection(firestore, 'ndcpcChatMessages'),
       orderBy('createdAt', 'asc'),
       limitToLast(200)
     );
@@ -147,7 +147,7 @@ export function ChatRoom() {
 
     const batch = writeBatch(firestore);
     pending.forEach((message) => {
-      batch.update(doc(firestore, 'chatMessages', message.id), {
+      batch.update(doc(firestore, 'ndcpcChatMessages', message.id), {
         [`seenBy.${user.uid}`]: {
           name: profile.displayName,
           at: serverTimestamp(),
@@ -170,7 +170,7 @@ export function ChatRoom() {
 
     setIsSending(true);
     try {
-      await addDoc(collection(firestore, 'chatMessages'), {
+      const docRef = await addDoc(collection(firestore, 'ndcpcChatMessages'), {
         text: trimmed,
         authorUid: user.uid,
         authorName: profile.displayName,
@@ -186,6 +186,29 @@ export function ChatRoom() {
             }
           : {}),
       });
+
+      void (async () => {
+        try {
+          const idToken = await user.getIdToken();
+          await fetch('/api/send-chat-push', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${idToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              messageId: docRef.id,
+              authorUid: user.uid,
+              authorName: profile.displayName,
+              text: trimmed,
+            }),
+            keepalive: true,
+          });
+        } catch (pushError) {
+          console.error('Chat push dispatch failed:', pushError);
+        }
+      })();
+
       setText('');
       setReplyTo(null);
       stickToBottomRef.current = true;
@@ -206,7 +229,7 @@ export function ChatRoom() {
     if (!firestore || !user || message.authorUid !== user.uid) return;
     if (isChatMessageDeleted(message)) return;
 
-    const messageRef = doc(firestore, 'chatMessages', message.id);
+    const messageRef = doc(firestore, 'ndcpcChatMessages', message.id);
 
     try {
       await updateDoc(messageRef, {
@@ -255,7 +278,7 @@ export function ChatRoom() {
     }
 
     try {
-      await updateDoc(doc(firestore, 'chatMessages', message.id), {
+      await updateDoc(doc(firestore, 'ndcpcChatMessages', message.id), {
         reactions: nextReactions,
       });
     } catch (error) {

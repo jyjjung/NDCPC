@@ -86,7 +86,7 @@ export function PrayerTopicList() {
 
   const topicsQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'prayerTopics'), orderBy('date', 'desc'));
+    return query(collection(firestore, 'ndcpcPrayerTopics'), orderBy('date', 'desc'));
   }, [firestore]);
 
   const { data: topics, isLoading } = useCollection<PrayerTopic>(topicsQuery, {
@@ -96,7 +96,7 @@ export function PrayerTopicList() {
   const handleDelete = async (topicId: string) => {
     if (!firestore) return;
     try {
-      await deleteDoc(doc(firestore, 'prayerTopics', topicId));
+      await deleteDoc(doc(firestore, 'ndcpcPrayerTopics', topicId));
       toast({ title: t('toast.deleted') });
     } catch (error) {
       console.error('Error deleting prayer topic: ', error);

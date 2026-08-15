@@ -28,7 +28,7 @@ export function WorshipFormatManager({ editOpen, onEditOpenChange }: WorshipForm
 
   const weeklyFormatRef = useMemoFirebase(() => {
     if (!firestore) return null;
-    return doc(firestore, 'worshipFormats', WEEKLY_WORSHIP_FORMAT_ID);
+    return doc(firestore, 'ndcpcWorshipFormats', WEEKLY_WORSHIP_FORMAT_ID);
   }, [firestore]);
 
   const { data: weeklyFormat, isLoading } = useDoc<WorshipFormat>(weeklyFormatRef);
@@ -73,7 +73,7 @@ export function useWeeklyWorshipFormat() {
 
   const weeklyFormatRef = useMemoFirebase(() => {
     if (!firestore) return null;
-    return doc(firestore, 'worshipFormats', WEEKLY_WORSHIP_FORMAT_ID);
+    return doc(firestore, 'ndcpcWorshipFormats', WEEKLY_WORSHIP_FORMAT_ID);
   }, [firestore]);
 
   return useDoc<WorshipFormat>(weeklyFormatRef);

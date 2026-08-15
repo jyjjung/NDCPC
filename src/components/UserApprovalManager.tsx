@@ -51,7 +51,7 @@ export function UserApprovalManager() {
 
   const volunteersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'volunteers'), orderBy('name'));
+    return query(collection(firestore, 'ndcpcVolunteers'), orderBy('name'));
   }, [firestore]);
 
   const { data: pendingUsers, isLoading: pendingLoading } =

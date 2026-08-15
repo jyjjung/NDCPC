@@ -113,7 +113,7 @@ export function EditResourceChapterForm({ resource, onSuccess }: EditResourceCha
       const baseTitle = getBaseVideoTitle(resource.title, preview.title);
       const title = clip.chapterTitle ? `${baseTitle} - ${clip.chapterTitle}` : baseTitle;
 
-      await updateDoc(doc(firestore, 'resources', resource.id), {
+      await updateDoc(doc(firestore, 'ndcpcResources', resource.id), {
         title,
         ...(clip.startSeconds !== undefined
           ? { startSeconds: clip.startSeconds }

@@ -32,12 +32,12 @@ export async function sendRosterReminders(): Promise<RosterReminderResult> {
   const nextDay = startOfDay(addDays(targetDate, 1));
 
   const schedulesSnap = await db
-    .collection('schedules')
+    .collection('ndcpcSchedules')
     .where('date', '>=', Timestamp.fromDate(targetDate))
     .where('date', '<', Timestamp.fromDate(nextDay))
     .get();
 
-  const volunteersSnap = await db.collection('volunteers').get();
+  const volunteersSnap = await db.collection('ndcpcVolunteers').get();
   const volunteersByName = new Map<string, VolunteerRecord>();
 
   for (const doc of volunteersSnap.docs) {
@@ -72,21 +72,21 @@ export async function sendRosterReminders(): Promise<RosterReminderResult> {
       }
 
       const reminderId = `${scheduleDoc.id}_${volunteer.userId}_${role}`;
-      const existing = await db.collection('rosterReminders').doc(reminderId).get();
+      const existing = await db.collection('ndcpcRosterReminders').doc(reminderId).get();
       if (existing.exists) {
         result.skippedAlreadySent += 1;
         continue;
       }
 
-      const tokensSnap = await db
-        .collection('users')
-        .doc(volunteer.userId)
-        .collection('fcmTokens')
-        .get();
+      const userSnap = await db.collection('users').doc(volunteer.userId).get();
+      const userData = userSnap.data();
+      const approved = Boolean(userData?.isApproved ?? userData?.approved);
+      if (!userSnap.exists || !approved) {
+        result.skippedNoUser += 1;
+        continue;
+      }
 
-      const tokens = tokensSnap.docs
-        .map((doc) => doc.data().token as string | undefined)
-        .filter((token): token is string => Boolean(token));
+      const tokens = [...new Set((userData?.fcmTokens as string[] | undefined) ?? [])].filter(Boolean);
 
       if (tokens.length === 0) {
         result.skippedNoTokens += 1;
@@ -114,7 +114,7 @@ export async function sendRosterReminders(): Promise<RosterReminderResult> {
         });
       }
 
-      await db.collection('rosterReminders').doc(reminderId).set({
+      await db.collection('ndcpcRosterReminders').doc(reminderId).set({
         scheduleId: scheduleDoc.id,
         userId: volunteer.userId,
         volunteerName,

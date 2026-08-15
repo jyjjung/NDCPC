@@ -24,7 +24,7 @@ export function UpcomingDuties({ schedules }: UpcomingDutiesProps) {
 
   const volunteersQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'volunteers'), orderBy('name'));
+    return query(collection(firestore, 'ndcpcVolunteers'), orderBy('name'));
   }, [firestore]);
 
   const { data: volunteers } = useCollection<Volunteer>(volunteersQuery, {

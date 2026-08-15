@@ -37,7 +37,7 @@ export function ResourceList({
 
   const resourcesQuery = useMemoFirebase(() => {
     if (!firestore) return null;
-    return query(collection(firestore, 'resources'), orderBy('createdAt', 'desc'));
+    return query(collection(firestore, 'ndcpcResources'), orderBy('createdAt', 'desc'));
   }, [firestore]);
 
   const { data: allResources, isLoading } = useCollection<Resource>(resourcesQuery, {

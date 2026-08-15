@@ -3,7 +3,7 @@
 const STORAGE_PREFIX = 'ndcpc-read:';
 
 export const READ_TRACKING_KEYS = {
-  announcements: 'announcements',
+  announcements: 'ndcpcAnnouncements',
   chat: 'chat',
 } as const;
 

@@ -11,10 +11,10 @@ import {
 } from 'firebase/messaging';
 import {
   addDoc,
+  arrayUnion,
   collection,
   doc,
   serverTimestamp,
-  setDoc,
   updateDoc,
 } from 'firebase/firestore';
 import type { Firestore } from 'firebase/firestore';
@@ -84,8 +84,9 @@ export async function updateChatNotificationPref(
   uid: string,
   enabled: boolean
 ) {
-  const notificationPrefs: NotificationPrefs = { chat: enabled };
-  await updateDoc(doc(firestore, 'users', uid), { notificationPrefs });
+  await updateDoc(doc(firestore, 'users', uid), {
+    'preferences.notifications.ndcpc.chat': enabled,
+  });
 }
 
 export async function registerPushNotifications(
@@ -126,9 +127,8 @@ export async function registerPushNotifications(
 
   if (!token) return 'denied';
 
-  await setDoc(doc(firestore, 'users', uid, 'fcmTokens', token), {
-    token,
-    updatedAt: serverTimestamp(),
+  await updateDoc(doc(firestore, 'users', uid), {
+    fcmTokens: arrayUnion(token),
   });
 
   return 'granted';
